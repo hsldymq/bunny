@@ -114,6 +114,6 @@ interface ChannelInterface
     /**
      * Changes channel to confirm mode. Broker then asynchronously sends 'basic.ack's for published messages.
      */
-    public function confirmSelect(callable $callback = null, bool $nowait = false): \Bunny\Protocol\MethodConfirmSelectOkFrame;
+    public function confirmSelect(?callable $callback = null, bool $nowait = false): \Bunny\Protocol\MethodConfirmSelectOkFrame;
 }
 

@@ -382,7 +382,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Changes channel to confirm mode. Broker then asynchronously sends 'basic.ack's for published messages.
      */
-    public function confirmSelect(callable $callback = null, bool $nowait = false): \Bunny\Protocol\MethodConfirmSelectOkFrame
+    public function confirmSelect(?callable $callback = null, bool $nowait = false): \Bunny\Protocol\MethodConfirmSelectOkFrame
     {
         if ($this->mode !== ChannelMode::Regular) {
             throw new ChannelException("Channel not in regular mode, cannot change to transactional mode.");
@@ -394,7 +394,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
         return $response;
     }
 
-    private function enterConfirmMode(callable $callback = null): void
+    private function enterConfirmMode(?callable $callback = null): void
     {
         $this->mode = ChannelMode::Confirm;
         $this->deliveryTag = 0;
