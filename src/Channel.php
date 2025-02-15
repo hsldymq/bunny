@@ -24,6 +24,7 @@ use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
+use SplQueue;
 use function React\Async\async;
 use function React\Async\await;
 
@@ -59,6 +60,12 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     /** @var callable[] */
     private $deliverCallbacks = [];
+
+    /** @var bool[] */
+    private $deliveryBusy = [];
+
+    /** @var SplQueue[] */
+    private $deliveryQueue = [];
 
     /** @var callable[] */
     private $ackCallbacks = [];
@@ -227,6 +234,8 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
         if ($response instanceof MethodBasicConsumeOkFrame) {
             $this->deliverCallbacks[$response->consumerTag] = $callback;
+            $this->deliveryQueue[$response->consumerTag] = new SplQueue();
+            $this->deliveryBusy[$response->consumerTag] = false;
             return $response;
 
         }
@@ -337,6 +346,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
     {
         $response = $this->cancelImpl($consumerTag, $nowait);
         unset($this->deliverCallbacks[$consumerTag]);
+        unset($this->deliveryQueue[$consumerTag]);
         return $response;
     }
 
@@ -452,6 +462,8 @@ class Channel implements ChannelInterface, EventEmitterInterface
 //                $this->client = null;
                 // break consumers' reference cycle
                 $this->deliverCallbacks = [];
+                $this->deliveryQueue = [];
+                $this->deliveryBusy = [];
 
             } elseif ($frame instanceof MethodBasicReturnFrame) {
                 $this->returnFrame = $frame;
@@ -589,9 +601,8 @@ class Channel implements ChannelInterface, EventEmitterInterface
                     $content
                 );
 
-                $callback = $this->deliverCallbacks[$this->deliverFrame->consumerTag];
-
-                $callback($message, $this, $this->client);
+                $this->deliveryQueue[$this->deliverFrame->consumerTag]->enqueue($message);
+                $this->deliveryTick($this->deliverFrame->consumerTag);
             }
 
             $this->deliverFrame = null;
@@ -619,6 +630,30 @@ class Channel implements ChannelInterface, EventEmitterInterface
         } else {
             throw new \LogicException("Either return or deliver frame has to be handled here.");
         }
+    }
+
+    private function deliveryTick(string $consumerTag): void
+    {
+        if ($this->deliveryBusy[$consumerTag] === true || $this->deliveryQueue[$consumerTag]->isEmpty()) {
+            return;
+        }
+
+        $this->deliveryBusy[$consumerTag] = true;
+        $message = $this->deliveryQueue[$consumerTag]->dequeue();
+        $callback = $this->deliverCallbacks[$consumerTag];
+
+        $outcome = $callback($message, $this, $this->client);
+
+        if (!($outcome instanceof PromiseInterface)) {
+            $this->deliveryBusy[$consumerTag] = false;
+            $this->deliveryTick($consumerTag);
+            return;
+        }
+
+        $outcome->finally(function () use ($consumerTag) {
+            $this->deliveryBusy[$consumerTag] = false;
+            $this->deliveryTick($consumerTag);
+        });
     }
 }
 
