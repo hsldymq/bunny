@@ -115,5 +115,36 @@ interface ChannelInterface
      * Changes channel to confirm mode. Broker then asynchronously sends 'basic.ack's for published messages.
      */
     public function confirmSelect(?callable $callback = null, bool $nowait = false): \Bunny\Protocol\MethodConfirmSelectOkFrame;
+
+    /**
+     * Calls basic.qos AMQP method.
+     */
+    public function qos(int $prefetchSize = 0, int $prefetchCount = 0, bool $global = false): bool|\Bunny\Protocol\MethodBasicQosOkFrame;
+
+    /**
+     * Calls queue.declare AMQP method.
+     */
+    public function queueDeclare(string $queue = '', bool $passive = false, bool $durable = false, bool $exclusive = false, bool $autoDelete = false, bool $nowait = false, array $arguments = []): bool|\Bunny\Protocol\MethodQueueDeclareOkFrame;
+
+    /**
+     * Calls queue.bind AMQP method.
+     */
+    public function queueBind(string $exchange, string $queue = '', string $routingKey = '', bool $nowait = false, array $arguments = []): bool|\Bunny\Protocol\MethodQueueBindOkFrame;
+
+    /**
+     * Calls queue.purge AMQP method.
+     */
+    public function queuePurge(string $queue = '', bool $nowait = false): bool|\Bunny\Protocol\MethodQueuePurgeOkFrame;
+
+    /**
+     * Calls queue.delete AMQP method.
+     */
+    public function queueDelete(string $queue = '', bool $ifUnused = false, bool $ifEmpty = false, bool $nowait = false): bool|\Bunny\Protocol\MethodQueueDeleteOkFrame;
+
+    /**
+     * Calls queue.unbind AMQP method.
+     */
+    public function queueUnbind(string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): bool|\Bunny\Protocol\MethodQueueUnbindOkFrame;
+
 }
 
