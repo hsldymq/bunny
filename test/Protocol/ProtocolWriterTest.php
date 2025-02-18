@@ -43,4 +43,38 @@ class ProtocolWriterTest extends TestCase
 
         $protocolWriter->appendFieldValue($date, $buffer);
     }
+
+    public function test_appendFieldValue_canHandleInt32()
+    {
+        $buffer = $this->createMock(Buffer::class);
+        $protocolWriter = new ProtocolWriter();
+
+        $int = 42;
+
+        $buffer->expects($this->once())
+               ->method('appendUint8')
+               ->with(Constants::FIELD_LONG_INT);
+        $buffer->expects($this->once())
+               ->method('appendInt32')
+               ->with($int);
+
+        $protocolWriter->appendFieldValue($int, $buffer);
+    }
+
+    public function test_appendFieldValue_canHandleInt64()
+    {
+        $buffer = $this->createMock(Buffer::class);
+        $protocolWriter = new ProtocolWriter();
+
+        $int = 2_157_483_647;
+
+        $buffer->expects($this->once())
+               ->method('appendUint8')
+               ->with(Constants::FIELD_LONG_LONG_INT);
+        $buffer->expects($this->once())
+               ->method('appendInt64')
+               ->with($int);
+
+        $protocolWriter->appendFieldValue($int, $buffer);
+    }
 }
