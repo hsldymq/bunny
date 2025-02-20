@@ -200,8 +200,13 @@ class ProtocolWriter
             $buffer->append($value);
 
         } elseif (is_int($value)) {
-            $buffer->appendUint8(Constants::FIELD_LONG_INT);
-            $buffer->appendInt32($value);
+           if (PHP_INT_SIZE === 4) {
+               $buffer->appendUint8(Constants::FIELD_LONG_INT);
+               $buffer->appendInt32($value);
+           } else {
+               $buffer->appendUint8(Constants::FIELD_LONG_LONG_INT);
+               $buffer->appendInt64($value);
+           }
 
         } elseif (is_bool($value)) {
             $buffer->appendUint8(Constants::FIELD_BOOLEAN);

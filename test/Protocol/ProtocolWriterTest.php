@@ -43,4 +43,47 @@ class ProtocolWriterTest extends TestCase
 
         $protocolWriter->appendFieldValue($date, $buffer);
     }
+
+    /**
+     * @dataProvider provider_appendFieldValue_canHandleInt64
+     */
+    public function test_appendFieldValue_canHandleInt64(int $value, bool $expectedInt64)
+    {
+        $buffer = $this->createMock(Buffer::class);
+        $protocolWriter = new ProtocolWriter();
+
+        if ($expectedInt64) {
+            $buffer->expects($this->once())
+                   ->method('appendUint8')
+                   ->with(Constants::FIELD_LONG_LONG_INT);
+            $buffer->expects($this->once())
+                   ->method('appendInt64')
+                   ->with($value);
+        } else {
+            $buffer->expects($this->once())
+                   ->method('appendUint8')
+                   ->with(Constants::FIELD_LONG_INT);
+            $buffer->expects($this->once())
+                   ->method('appendInt32')
+                   ->with($value);
+        }
+
+        $protocolWriter->appendFieldValue($value, $buffer);
+    }
+
+    /**
+     * @return iterable<array<string,mixed>>
+     */
+    public static function provider_appendFieldValue_canHandleInt64(): iterable
+    {
+        yield [
+            'value' => 42,
+            'expectedInt64' => true,
+        ];
+
+        yield [
+            'value' => 2_157_483_647,
+            'expectedInt64' => true,
+        ];
+    }
 }
