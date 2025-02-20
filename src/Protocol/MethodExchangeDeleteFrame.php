@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,17 +16,13 @@ use Bunny\Constants;
 class MethodExchangeDeleteFrame extends MethodFrame
 {
 
-    /** @var string */
-    public $exchange;
+    public string $exchange;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public int $reserved1 = 0;
 
-    /** @var bool */
-    public $ifUnused = false;
+    public bool $ifUnused = false;
 
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     public function __construct()
     {

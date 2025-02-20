@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,17 +16,13 @@ use Bunny\Constants;
 class MethodBasicReturnFrame extends MethodFrame
 {
 
-    /** @var int */
-    public $replyCode;
+    public int $replyCode;
 
-    /** @var string */
-    public $exchange;
+    public string $exchange;
 
-    /** @var string */
-    public $routingKey;
+    public string $routingKey;
 
-    /** @var string */
-    public $replyText = '';
+    public string $replyText = '';
 
     public function __construct()
     {

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,8 +16,7 @@ use Bunny\Constants;
 class MethodQueueDeleteOkFrame extends MethodFrame
 {
 
-    /** @var int */
-    public $messageCount;
+    public int $messageCount;
 
     public function __construct()
     {

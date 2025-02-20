@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,8 +16,7 @@ use Bunny\Constants;
 class MethodChannelOpenOkFrame extends MethodFrame
 {
 
-    /** @var string */
-    public $channelId = '';
+    public string $channelId = '';
 
     public function __construct()
     {

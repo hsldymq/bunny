@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,14 +16,11 @@ use Bunny\Constants;
 class MethodBasicQosFrame extends MethodFrame
 {
 
-    /** @var int */
-    public $prefetchSize = 0;
+    public int $prefetchSize = 0;
 
-    /** @var int */
-    public $prefetchCount = 0;
+    public int $prefetchCount = 0;
 
-    /** @var bool */
-    public $global = false;
+    public bool $global = false;
 
     public function __construct()
     {

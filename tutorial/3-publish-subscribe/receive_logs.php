@@ -16,7 +16,7 @@ $channel->queueBind('logs', $queue->queue);
 echo ' [*] Waiting for logs. To exit press CTRL+C', "\n";
 
 $channel->consume(
-    function (Message $message, Channel $channel, Client $client) {
+    function (Message $message, Channel $channel, Client $client): void {
         echo ' [x] ', $message->content, "\n";
     },
     $queue->queue,

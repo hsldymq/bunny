@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,23 +16,17 @@ use Bunny\Constants;
 class MethodAccessRequestFrame extends MethodFrame
 {
 
-    /** @var string */
-    public $realm = '/data';
+    public string $realm = '/data';
 
-    /** @var bool */
-    public $exclusive = false;
+    public bool $exclusive = false;
 
-    /** @var bool */
-    public $passive = true;
+    public bool $passive = true;
 
-    /** @var bool */
-    public $active = true;
+    public bool $active = true;
 
-    /** @var bool */
-    public $write = true;
+    public bool $write = true;
 
-    /** @var bool */
-    public $read = true;
+    public bool $read = true;
 
     public function __construct()
     {

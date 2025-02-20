@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,20 +16,15 @@ use Bunny\Constants;
 class MethodQueueDeleteFrame extends MethodFrame
 {
 
-    /** @var int */
-    public $reserved1 = 0;
+    public int $reserved1 = 0;
 
-    /** @var string */
-    public $queue = '';
+    public string $queue = '';
 
-    /** @var bool */
-    public $ifUnused = false;
+    public bool $ifUnused = false;
 
-    /** @var bool */
-    public $ifEmpty = false;
+    public bool $ifEmpty = false;
 
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     public function __construct()
     {

@@ -14,7 +14,7 @@ $channel->queueDeclare('hello', false, false, false, false);
 echo ' [*] Waiting for messages. To exit press CTRL+C', "\n";
 
 $channel->consume(
-    function (Message $message, Channel $channel) {
+    function (Message $message, Channel $channel): void {
         echo " [x] Received ", $message->content, "\n";
     },
     'hello',

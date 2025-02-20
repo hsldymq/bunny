@@ -1,8 +1,10 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Exception;
+
+use function sprintf;
 
 /**
  * Peer sent frame with invalid method id.
@@ -12,31 +14,17 @@ namespace Bunny\Exception;
 class InvalidMethodException extends ProtocolException
 {
 
-    /** @var int */
-    private $classId;
-
-    /** @var int */
-    private $methodId;
-
-    public function __construct($classId, $methodId)
+    public function __construct(private int $classId, private int $methodId)
     {
-        parent::__construct("Unhandled method frame method '{$methodId}' in class '{$classId}'.");
-        $this->classId = $classId;
-        $this->methodId = $methodId;
+        parent::__construct(sprintf('Unhandled method frame method \'%d\' in class \'%d\'.', $this->methodId, $this->classId));
     }
 
-    /**
-     * @return int
-     */
-    public function getClassId()
+    public function getClassId(): int
     {
         return $this->classId;
     }
 
-    /**
-     * @return int
-     */
-    public function getMethodId()
+    public function getMethodId(): int
     {
         return $this->methodId;
     }

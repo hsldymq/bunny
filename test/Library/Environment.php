@@ -1,11 +1,15 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Test\Library;
 
+use function getenv;
+use function trim;
+
 final class Environment
 {
+
     public static function getSslCa(): string
     {
         return trim(self::getenv('SSL_CA'));
@@ -52,7 +56,7 @@ final class Environment
         return trim(self::getenv('TEST_RABBITMQ_CONNECTION_URI'));
     }
 
-    private static function getenv(string $envVariable, ?string $default = null):string
+    private static function getenv(string $envVariable, ?string $default = null): string
     {
         $value = getenv($envVariable);
 
@@ -60,6 +64,7 @@ final class Environment
             throw new EnvironmentException($envVariable);
         }
 
-        return $value!==false?$value:$default;
+        return $value !== false ? $value : $default;
     }
+
 }

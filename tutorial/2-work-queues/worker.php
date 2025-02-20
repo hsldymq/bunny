@@ -15,7 +15,7 @@ echo ' [*] Waiting for messages. To exit press CTRL+C', "\n";
 
 $channel->qos(0, 1);
 $channel->consume(
-    function (Message $message, Channel $channel, Client $client) {
+    function (Message $message, Channel $channel, Client $client): void {
         echo " [x] Received ", $message->content, "\n";
         sleep(substr_count($message->content, '.'));
         echo " [x] Done", "\n";

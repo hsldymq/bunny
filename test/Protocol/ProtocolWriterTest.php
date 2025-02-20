@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types = 1);
+
 namespace Bunny\Test\Protocol;
 
 use Bunny\Constants;
@@ -10,7 +13,8 @@ use PHPUnit\Framework\TestCase;
 
 class ProtocolWriterTest extends TestCase
 {
-    public function test_appendFieldValue_canHandleDateTime()
+
+    public function test_appendFieldValue_canHandleDateTime(): void
     {
         $buffer = $this->createMock(Buffer::class);
         $protocolWriter = new ProtocolWriter();
@@ -27,7 +31,7 @@ class ProtocolWriterTest extends TestCase
         $protocolWriter->appendFieldValue($date, $buffer);
     }
 
-    public function test_appendFieldValue_canHandleDateTimeImmutable()
+    public function test_appendFieldValue_canHandleDateTimeImmutable(): void
     {
         $buffer = $this->createMock(Buffer::class);
         $protocolWriter = new ProtocolWriter();
@@ -47,7 +51,7 @@ class ProtocolWriterTest extends TestCase
     /**
      * @dataProvider provider_appendFieldValue_canHandleInt64
      */
-    public function test_appendFieldValue_canHandleInt64(int $value, bool $expectedInt64)
+    public function test_appendFieldValue_canHandleInt64(int $value, bool $expectedInt64): void
     {
         $buffer = $this->createMock(Buffer::class);
         $protocolWriter = new ProtocolWriter();
@@ -86,4 +90,5 @@ class ProtocolWriterTest extends TestCase
             'expectedInt64' => true,
         ];
     }
+
 }

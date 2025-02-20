@@ -1,31 +1,32 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Bunny\Test;
 
 use Bunny\Exception\ClientException;
+use Bunny\Test\Library\ClientHelper;
 use Bunny\Test\Library\Environment;
-use Bunny\Test\Library\SynchronousClientHelper;
 use PHPUnit\Framework\TestCase;
-use function dirname;
 use function file_exists;
+use function in_array;
 use function is_file;
 use function putenv;
+use function time;
 
 class SSLTest extends TestCase
 {
-    /**
-     * @var SynchronousClientHelper
-     */
-    private $helper;
+
+    private ClientHelper $helper;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->helper = new SynchronousClientHelper();
+        $this->helper = new ClientHelper();
     }
 
-    public function testConnect()
+    public function testConnect(): void
     {
         $options = $this->getOptions();
 
@@ -36,7 +37,7 @@ class SSLTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function testConnectWithMissingClientCert()
+    public function testConnectWithMissingClientCert(): void
     {
         $options = $this->getOptions();
         if (!isset($options['ssl']['local_cert'])) {
@@ -55,7 +56,7 @@ class SSLTest extends TestCase
         $client->disconnect();
     }
 
-    public function testConnectToTcpPort()
+    public function testConnectToTcpPort(): void
     {
         $options = $this->getOptions();
         unset($options['port']);
@@ -67,7 +68,7 @@ class SSLTest extends TestCase
         $client->disconnect();
     }
 
-    public function testConnectWithWrongPeerName()
+    public function testConnectWithWrongPeerName(): void
     {
         putenv('SSL_PEER_NAME=not-existsing-peer-name' . time());
         $options = $this->getOptions();
@@ -79,7 +80,10 @@ class SSLTest extends TestCase
         $client->disconnect();
     }
 
-    protected function getOptions()
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getOptions(): array
     {
         // should we do SSL-tests
         if (!in_array(Environment::getSslTest(), ['yes', 'client'], true)) {
@@ -108,7 +112,6 @@ class SSLTest extends TestCase
             ],
         ];
 
-
         $certFile = Environment::getSslClientCert();
         $keyFile  = Environment::getSslClientKey();
 
@@ -118,13 +121,16 @@ class SSLTest extends TestCase
             if (!file_exists($certFile) || !is_file($certFile)) {
                 $this->fail('Missing certificate file: "' . $certFile . '"');
             }
+
             if (!file_exists($keyFile) || !is_file($keyFile)) {
                 $this->fail('Missing key file: "' . $keyFile . '"');
             }
+
             $options['ssl']['local_cert'] = $certFile;
             $options['ssl']['local_pk']   = $keyFile;
         }
 
         return $options;
     }
+
 }

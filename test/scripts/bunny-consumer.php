@@ -3,7 +3,8 @@
 
 // Usage: bunny-consumer.php <amqp-uri> <queue-name> <max-seconds>
 
-declare(strict_types=1);
+
+declare(strict_types = 1);
 
 namespace Bunny\Test\App;
 
@@ -12,16 +13,22 @@ use Bunny\Client;
 use Bunny\Message;
 use React\EventLoop\Loop;
 use function Bunny\Test\Library\parseAmqpUri;
+use function array_shift;
+use function pcntl_signal;
+use const SIGINT;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-function app(array $args)
+/**
+ * @param array<string,mixed> $args
+ */
+function app(array $args): void
 {
     $connection = parseAmqpUri($args['amqpUri']);
 
     $client = new Client($connection);
 
-    pcntl_signal(SIGINT, function () use ($client) {
+    pcntl_signal(SIGINT, static function () use ($client): void {
         $client->disconnect();
     });
 
@@ -30,7 +37,7 @@ function app(array $args)
 
     $channel->qos(0, 1);
     $channel->queueDeclare($args['queueName']);
-    $channel->consume(function (Message $message, Channel $channel) use ($client) {
+    $channel->consume(static function (Message $message, Channel $channel): void {
         $channel->ack($message);
     });
     Loop::addTimer($args['maxSeconds'], static function () use ($client): void {

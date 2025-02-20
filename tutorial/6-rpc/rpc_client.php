@@ -1,6 +1,7 @@
 <?php
 
 use Bunny\Channel;
+use Bunny\ChannelInterface;
 use Bunny\Client;
 use Bunny\Message;
 use React\EventLoop\Loop;
@@ -12,8 +13,8 @@ require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 class FibonacciRpcClient
 {
-    private $client;
-    private $channel;
+    private Client $client;
+    private ChannelInterface $channel;
 
     public function __construct()
     {
@@ -21,18 +22,18 @@ class FibonacciRpcClient
         $this->channel = $this->client->channel();
     }
 
-    public function close()
+    public function close(): void
     {
         $this->client->disconnect();
     }
 
-    public function call($n)
+    public function call($n): int
     {
         $corr_id = uniqid();
         $response = new Deferred();
         $responseQueue = $this->channel->queueDeclare('', false, false, true);
         $subscription = $this->channel->consume(
-            function (Message $message, Channel $channel, Client $client) use (&$response, $corr_id, &$subscription) {
+            function (Message $message, Channel $channel, Client $client) use (&$response, $corr_id, &$subscription): void {
                 if ($message->getHeader('correlation_id') != $corr_id) {
                     return;
                 }

@@ -1,7 +1,6 @@
 <?php
-namespace Bunny;
 
-use Bunny\Message;
+namespace Bunny;
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
@@ -15,7 +14,7 @@ $ch->queueBind("bench_exchange", "bench_queue");
 $t = null;
 $count = 0;
 
-$ch->consume(function (Message $msg, Channel $ch, Client $c) use (&$t, &$count) {
+$ch->consume(function (Message $msg, Channel $ch, Client $c) use (&$t, &$count): void {
     if ($t === null) {
         $t = microtime(true);
     }

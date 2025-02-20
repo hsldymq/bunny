@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,8 +16,7 @@ use Bunny\Constants;
 class MethodConfirmSelectFrame extends MethodFrame
 {
 
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     public function __construct()
     {

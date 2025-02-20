@@ -1,17 +1,18 @@
 <?php
+
 define("N", 1000000);
 
-function swapEndian64Strrev($s)
+function swapEndian64Strrev($s): string
 {
     return strrev($s);
 }
 
-function swapEndian64Concat($s)
+function swapEndian64Concat($s): string
 {
-		return $s[7] . $s[6] . $s[5] . $s[4] . $s[3] . $s[2] . $s[1] . $s[0];
+    return $s[7] . $s[6] . $s[5] . $s[4] . $s[3] . $s[2] . $s[1] . $s[0];
 }
 
-function swapEndian64Index($s)
+function swapEndian64Index($s): string
 {
     $rs = "00000000";
     $rs[0] = $s[7];

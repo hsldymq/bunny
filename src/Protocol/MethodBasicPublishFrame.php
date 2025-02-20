@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,20 +16,15 @@ use Bunny\Constants;
 class MethodBasicPublishFrame extends MethodFrame
 {
 
-    /** @var int */
-    public $reserved1 = 0;
+    public int $reserved1 = 0;
 
-    /** @var string */
-    public $exchange = '';
+    public string $exchange = '';
 
-    /** @var string */
-    public $routingKey = '';
+    public string $routingKey = '';
 
-    /** @var bool */
-    public $mandatory = false;
+    public bool $mandatory = false;
 
-    /** @var bool */
-    public $immediate = false;
+    public bool $immediate = false;
 
     public function __construct()
     {

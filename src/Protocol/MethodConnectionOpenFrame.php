@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,18 +16,16 @@ use Bunny\Constants;
 class MethodConnectionOpenFrame extends MethodFrame
 {
 
-    /** @var string */
-    public $virtualHost = '/';
+    public string $virtualHost = '/';
 
-    /** @var string */
-    public $capabilities = '';
+    public string $capabilities = '';
 
-    /** @var bool */
-    public $insist = false;
+    public bool $insist = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_CONNECTION, Constants::METHOD_CONNECTION_OPEN);
+
         $this->channel = Constants::CONNECTION_CHANNEL;
     }
 

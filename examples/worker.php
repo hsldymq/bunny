@@ -3,8 +3,6 @@
 use Bunny\Client;
 use Bunny\Channel;
 use Bunny\Message;
-use Bunny\Protocol\MethodBasicConsumeOkFrame;
-
 use React\EventLoop\Loop;
 use function React\Async\async;
 
@@ -14,19 +12,19 @@ $channel = null;
 $consumerTag = null;
 
 // Capture signals - SIGINT = Ctrl+C; SIGTERM = `kill`
-Loop::addSignal(SIGINT, function (int $signal) use (&$channel, &$consumerTag) {
+Loop::addSignal(SIGINT, function (int $signal) use (&$channel, &$consumerTag): void {
     print 'Consumer cancelled\n';
     $channel->cancel($consumerTag);
 
-    Loop::addTimer(3, static function () {
+    Loop::addTimer(3, static function (): void {
         Loop::stop();
     });
 });
-Loop::addSignal(SIGTERM, function (int $signal) use (&$channel, &$consumerTag) {
+Loop::addSignal(SIGTERM, function (int $signal) use (&$channel, &$consumerTag): void {
     print 'Consumer cancelled\n';
     $channel->cancel($consumerTag);
 
-    Loop::addTimer(3, static function () {
+    Loop::addTimer(3, static function (): void {
         Loop::stop();
     });
 });
@@ -46,7 +44,7 @@ $channel->queueDeclare('hello', false, false, false, false);
 $channelRef = $channel;
 echo ' [*] Waiting for messages. To exit press CTRL+C', "\n";
 $response = $channel->consume(
-    async(function (Message $message, Channel $channel) {
+    async(function (Message $message, Channel $channel): void {
         echo ' [x] Received ', $message->content, "\n";
 
         // Do some work - we generate password hashes with a high cost

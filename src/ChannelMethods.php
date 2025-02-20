@@ -1,11 +1,8 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny;
-
-use Bunny\Protocol;
-use React\Promise;
 
 /**
  * AMQP-0-9-1 channel methods
@@ -29,6 +26,8 @@ trait ChannelMethods
 
     /**
      * Calls exchange.declare AMQP method.
+     *
+     * @param array<string,mixed> $arguments
      */
     public function exchangeDeclare(string $exchange, string $exchangeType = 'direct', bool $passive = false, bool $durable = false, bool $autoDelete = false, bool $internal = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeDeclareOkFrame
     {
@@ -45,6 +44,8 @@ trait ChannelMethods
 
     /**
      * Calls exchange.bind AMQP method.
+     *
+     * @param array<string,mixed> $arguments
      */
     public function exchangeBind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeBindOkFrame
     {
@@ -53,6 +54,8 @@ trait ChannelMethods
 
     /**
      * Calls exchange.unbind AMQP method.
+     *
+     * @param array<string,mixed> $arguments
      */
     public function exchangeUnbind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeUnbindOkFrame
     {
@@ -61,6 +64,8 @@ trait ChannelMethods
 
     /**
      * Calls queue.declare AMQP method.
+     *
+     * @param array<string,mixed> $arguments
      */
     public function queueDeclare(string $queue = '', bool $passive = false, bool $durable = false, bool $exclusive = false, bool $autoDelete = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodQueueDeclareOkFrame
     {
@@ -69,6 +74,8 @@ trait ChannelMethods
 
     /**
      * Calls queue.bind AMQP method.
+     *
+     * @param array<string,mixed> $arguments
      */
     public function queueBind(string $exchange, string $queue = '', string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodQueueBindOkFrame
     {
@@ -93,6 +100,8 @@ trait ChannelMethods
 
     /**
      * Calls queue.unbind AMQP method.
+     *
+     * @param array<string,mixed> $arguments
      */
     public function queueUnbind(string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): bool|Protocol\MethodQueueUnbindOkFrame
     {
@@ -109,6 +118,8 @@ trait ChannelMethods
 
     /**
      * Calls basic.consume AMQP method.
+     *
+     * @param array<string,mixed> $arguments
      */
     public function consume(string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodBasicConsumeOkFrame
     {
@@ -125,6 +136,8 @@ trait ChannelMethods
 
     /**
      * Calls basic.publish AMQP method.
+     *
+     * @param array<string,mixed> $headers
      */
     public function publish(string $body, array $headers = [], string $exchange = '', string $routingKey = '', bool $mandatory = false, bool $immediate = false): bool
     {

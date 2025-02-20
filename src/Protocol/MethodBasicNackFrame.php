@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,14 +16,11 @@ use Bunny\Constants;
 class MethodBasicNackFrame extends MethodFrame
 {
 
-    /** @var int */
-    public $deliveryTag = 0;
+    public int $deliveryTag = 0;
 
-    /** @var bool */
-    public $multiple = false;
+    public bool $multiple = false;
 
-    /** @var bool */
-    public $requeue = true;
+    public bool $requeue = true;
 
     public function __construct()
     {

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,20 +16,15 @@ use Bunny\Constants;
 class MethodBasicDeliverFrame extends MethodFrame
 {
 
-    /** @var string */
-    public $consumerTag;
+    public string $consumerTag;
 
-    /** @var int */
-    public $deliveryTag;
+    public int $deliveryTag;
 
-    /** @var string */
-    public $exchange;
+    public string $exchange;
 
-    /** @var string */
-    public $routingKey;
+    public string $routingKey;
 
-    /** @var bool */
-    public $redelivered = false;
+    public bool $redelivered = false;
 
     public function __construct()
     {

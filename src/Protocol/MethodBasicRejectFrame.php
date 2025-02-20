@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Bunny\Protocol;
 
@@ -16,11 +16,9 @@ use Bunny\Constants;
 class MethodBasicRejectFrame extends MethodFrame
 {
 
-    /** @var int */
-    public $deliveryTag;
+    public int $deliveryTag;
 
-    /** @var bool */
-    public $requeue = true;
+    public bool $requeue = true;
 
     public function __construct()
     {
