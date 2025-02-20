@@ -200,7 +200,7 @@ class ProtocolWriter
             $buffer->append($value);
 
         } elseif (is_int($value)) {
-           if ($value >= -2_147_483_648 && $value <= 2_147_483_647) {
+           if (PHP_INT_SIZE === 4) {
                $buffer->appendUint8(Constants::FIELD_LONG_INT);
                $buffer->appendInt32($value);
            } else {
