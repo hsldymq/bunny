@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types = 1);
+
 use Bunny\Channel;
 use Bunny\Client;
 use Bunny\Message;
 
-function fib($n): float|int|array
+function fib(int $n): int
 {
-    if ($n == 0) {
+    if ($n === 0) {
         return 0;
     }
 
-    if ($n == 1) {
+    if ($n === 1) {
         return 1;
     }
 
@@ -27,18 +29,18 @@ $channel->queueDeclare('rpc_queue');
 echo " [x] Awaiting RPC requests\n";
 
 $channel->consume(
-    function (Message $message, Channel $channel, Client $client): void {
+    static function (Message $message, Channel $channel, Client $client): void {
         $n = intval($message->content);
-        echo " [.] fib(", $n, ")\n";
+        echo ' [.] fib(', $n, ")\n";
         $channel->publish(
             (string) fib($n),
             [
                 'correlation_id' => $message->getHeader('correlation_id'),
             ],
             '',
-            $message->getHeader('reply_to')
+            $message->getHeader('reply_to'),
         );
         $channel->ack($message);
     },
-    'rpc_queue'
+    'rpc_queue',
 );

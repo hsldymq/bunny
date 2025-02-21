@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 use Bunny\Client;
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
@@ -11,7 +13,7 @@ $channel->exchangeDeclare('logs', 'fanout');
 
 $data = implode(' ', array_slice($argv, 1));
 $channel->publish($data, [], 'logs');
-echo " [x] Sent '{$data}'\n";
+echo " [x] Sent '$data'\n";
 
 $channel->close();
 $client->disconnect();

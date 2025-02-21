@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 use Bunny\Client;
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
@@ -12,13 +14,11 @@ $channel->queueDeclare('task_queue', false, true, false, false);
 $data = implode(' ', array_slice($argv, 1));
 $channel->publish(
     $data,
-    [
-        'delivery-mode' => 2
-    ],
+    ['delivery-mode' => 2],
     '',
-    'task_queue'
+    'task_queue',
 );
-echo " [x] Sent '{$data}'\n";
+echo " [x] Sent '$data'\n";
 
 $channel->close();
 $client->disconnect();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 use Bunny\Channel;
 use Bunny\Client;
 use Bunny\Message;
@@ -16,11 +18,11 @@ $channel->queueBind('logs', $queue->queue);
 echo ' [*] Waiting for logs. To exit press CTRL+C', "\n";
 
 $channel->consume(
-    function (Message $message, Channel $channel, Client $client): void {
+    static function (Message $message, Channel $channel, Client $client): void {
         echo ' [x] ', $message->content, "\n";
     },
     $queue->queue,
     '',
     false,
-    true
+    true,
 );
