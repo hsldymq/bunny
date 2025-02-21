@@ -40,10 +40,10 @@
     },
     "require-dev": {
         "ext-pcntl": "*",
-        "phpunit/phpunit": "^10.5",
+        "phpunit/phpunit": "^9.6 || ^10.5",
         "phpstan/phpstan": "^2.1",
         "react/child-process": "^0.6.5",
-        "wyrihaximus/react-phpunit-run-tests-in-fiber": "^2.0"
+        "wyrihaximus/react-phpunit-run-tests-in-fiber": "^1.0 || ^2.0"
     },
     "autoload": {
         "psr-4": {

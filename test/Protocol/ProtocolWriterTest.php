@@ -49,7 +49,9 @@ class ProtocolWriterTest extends TestCase
         $protocolWriter->appendFieldValue($date, $buffer);
     }
 
-    #[DataProvider('provider_appendFieldValue_canHandleInt64')]
+    /**
+     * @dataProvider provider_appendFieldValue_canHandleInt64
+     */
     public function test_appendFieldValue_canHandleInt64(int $value, bool $expectedInt64): void
     {
         $buffer = $this->createMock(Buffer::class);
