@@ -34,9 +34,9 @@ class ChannelTest extends TestCase
         $c->connect();
         $c->channel()->close();
 
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
     public function testExchangeDeclare(): void
@@ -44,11 +44,11 @@ class ChannelTest extends TestCase
         $c = $this->helper->createClient();
 
         $ch = $c->connect()->channel();
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->exchangeDeclare('test_exchange', 'direct', false, false, true);
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
     public function testQueueDeclare(): void
@@ -56,11 +56,11 @@ class ChannelTest extends TestCase
         $c = $this->helper->createClient();
 
         $ch = $c->connect()->channel();
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->queueDeclare('test_queue', false, false, false, true);
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
     public function testQueueBind(): void
@@ -68,15 +68,15 @@ class ChannelTest extends TestCase
         $c = $this->helper->createClient();
 
         $ch = $c->connect()->channel();
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->exchangeDeclare('test_exchange', 'direct', false, false, true);
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->queueDeclare('test_queue', false, false, false, true);
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->queueBind('test_exchange', 'test_queue');
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
     public function testPublish(): void
@@ -84,11 +84,11 @@ class ChannelTest extends TestCase
         $c = $this->helper->createClient();
 
         $ch = $c->connect()->channel();
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->publish('test publish', []);
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
     public function testConsume(): void
@@ -96,17 +96,17 @@ class ChannelTest extends TestCase
         $c = $this->helper->createClient();
 
         $ch = $c->connect()->channel();
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->queueDeclare('test_queue', false, false, false, true);
-        $this->assertTrue($c->isConnected());
-        $ch->consume(function (Message $msg, Channel $ch, Client $c): void {
-            $this->assertEquals('hi', $msg->content);
+        self::assertTrue($c->isConnected());
+        $ch->consume(static function (Message $msg, Channel $ch, Client $c): void {
+            self::assertEquals('hi', $msg->content);
         });
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $ch->publish('hi', [], '', 'test_queue');
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
     public function testHeaders(): void
@@ -115,16 +115,16 @@ class ChannelTest extends TestCase
 
         $ch = $c->connect()->channel();
         $ch->queueDeclare('test_queue', false, false, false, true);
-        $ch->consume(function (Message $msg, Channel $ch, Client $c): void {
-            $this->assertTrue($msg->hasHeader('content-type'));
-            $this->assertEquals('text/html', $msg->getHeader('content-type'));
-            $this->assertEquals('<b>hi html</b>', $msg->content);
+        $ch->consume(static function (Message $msg, Channel $ch, Client $c): void {
+            self::assertTrue($msg->hasHeader('content-type'));
+            self::assertEquals('text/html', $msg->getHeader('content-type'));
+            self::assertEquals('<b>hi html</b>', $msg->content);
         });
         $ch->publish('<b>hi html</b>', ['content-type' => 'text/html'], '', 'test_queue');
 
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
     public function testBigMessage(): void
@@ -135,14 +135,14 @@ class ChannelTest extends TestCase
 
         $ch = $c->connect()->channel();
         $ch->queueDeclare('test_queue', false, false, false, true);
-        $ch->consume(function (Message $msg, Channel $ch, Client $c) use ($body): void {
-            $this->assertEquals($body, $msg->content);
+        $ch->consume(static function (Message $msg, Channel $ch, Client $c) use ($body): void {
+            self::assertEquals($body, $msg->content);
         });
         $ch->publish($body, [], '', 'test_queue');
 
-        $this->assertTrue($c->isConnected());
+        self::assertTrue($c->isConnected());
         $c->disconnect();
-        $this->assertFalse($c->isConnected());
+        self::assertFalse($c->isConnected());
     }
 
 }

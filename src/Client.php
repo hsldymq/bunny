@@ -6,7 +6,6 @@ namespace Bunny;
 
 use Bunny\Exception\ClientException;
 use Bunny\Protocol\Buffer;
-use Bunny\Protocol\MethodChannelOpenOkFrame;
 use Bunny\Protocol\MethodConnectionStartFrame;
 use Bunny\Protocol\ProtocolReader;
 use Bunny\Protocol\ProtocolWriter;
@@ -16,7 +15,6 @@ use Throwable;
 use function React\Async\async;
 use function React\Async\await;
 use function React\Promise\all;
-use function gettype;
 use function is_array;
 use function is_callable;
 use function sprintf;
@@ -160,17 +158,9 @@ class Client implements ClientInterface
             $this->channels->unset($channelId);
         });
         $this->channels->set($channelId, $channel);
-        $response = $this->connection->channelOpen($channelId);
+        $this->connection->channelOpen($channelId);
 
-        if ($response instanceof MethodChannelOpenOkFrame) {
-            return $channel;
-        }
-
-        $this->state = ClientState::Error;
-
-        throw new ClientException(
-            'channel.open unexpected response of type ' . gettype($response) . '.',
-        );
+        return $channel;
     }
 
     /**

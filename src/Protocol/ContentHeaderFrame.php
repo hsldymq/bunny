@@ -60,36 +60,36 @@ class ContentHeaderFrame extends AbstractFrame
 
     public int $flags = 0;
 
-    public string $contentType;
+    public ?string $contentType = null;
 
-    public string $contentEncoding;
+    public ?string $contentEncoding = null;
 
     /**
      * @var array<mixed>
      */
     public array $headers = [];
 
-    public int $deliveryMode;
+    public ?int $deliveryMode = null;
 
-    public int $priority;
+    public ?int $priority = null;
 
-    public string $correlationId;
+    public ?string $correlationId = null;
 
-    public string $replyTo;
+    public ?string $replyTo = null;
 
-    public string $expiration;
+    public ?string $expiration = null;
 
-    public string $messageId;
+    public ?string $messageId = null;
 
-    public DateTime $timestamp;
+    public ?DateTime $timestamp = null;
 
-    public string $typeHeader;
+    public ?string $typeHeader = null;
 
-    public string $userId;
+    public ?string $userId = null;
 
-    public string $appId;
+    public ?string $appId = null;
 
-    public string $clusterId;
+    public ?string $clusterId = null;
 
     public function __construct()
     {
@@ -105,7 +105,7 @@ class ContentHeaderFrame extends AbstractFrame
      */
     public static function fromArray(array $headers): self
     {
-        $instance = new static();
+        $instance = new self();
 
         if (isset($headers['content-type'])) {
             $instance->flags |= self::FLAG_CONTENT_TYPE;

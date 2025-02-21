@@ -28,13 +28,13 @@ class SSLTest extends TestCase
 
     public function testConnect(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $options = $this->getOptions();
 
         $client = $this->helper->createClient($options);
         $client->connect();
         $client->disconnect();
-
-        $this->assertTrue(true);
     }
 
     public function testConnectWithMissingClientCert(): void

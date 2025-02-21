@@ -9,6 +9,7 @@ use Bunny\Protocol\Buffer;
 use Bunny\Protocol\ProtocolWriter;
 use DateTime;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ProtocolWriterTest extends TestCase
@@ -48,9 +49,7 @@ class ProtocolWriterTest extends TestCase
         $protocolWriter->appendFieldValue($date, $buffer);
     }
 
-    /**
-     * @dataProvider provider_appendFieldValue_canHandleInt64
-     */
+    #[DataProvider('provider_appendFieldValue_canHandleInt64')]
     public function test_appendFieldValue_canHandleInt64(int $value, bool $expectedInt64): void
     {
         $buffer = $this->createMock(Buffer::class);

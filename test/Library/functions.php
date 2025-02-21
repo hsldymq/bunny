@@ -70,7 +70,7 @@ function parseAmqpUri(string $uri): array
         $options['vhost'] = $vhostCandidate;
     }
 
-    if ($options['vhost'] === '') {
+    if (($options['vhost'] ?? '') === '') {
         $options['vhost'] = '/';
     }
 

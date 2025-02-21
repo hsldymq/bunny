@@ -103,7 +103,7 @@ trait ChannelMethods
      *
      * @param array<string,mixed> $arguments
      */
-    public function queueUnbind(string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): bool|Protocol\MethodQueueUnbindOkFrame
+    public function queueUnbind(string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): Protocol\MethodQueueUnbindOkFrame
     {
         return $this->getClient()->queueUnbind($this->getChannelId(), $exchange, $queue, $routingKey, $arguments);
     }
@@ -111,7 +111,7 @@ trait ChannelMethods
     /**
      * Calls basic.qos AMQP method.
      */
-    public function qos(int $prefetchSize = 0, int $prefetchCount = 0, bool $global = false): bool|Protocol\MethodBasicQosOkFrame
+    public function qos(int $prefetchSize = 0, int $prefetchCount = 0, bool $global = false): Protocol\MethodBasicQosOkFrame
     {
         return $this->getClient()->qos($this->getChannelId(), $prefetchSize, $prefetchCount, $global);
     }
@@ -147,7 +147,7 @@ trait ChannelMethods
     /**
      * Calls basic.get AMQP method.
      */
-    public function get(string $queue = '', bool $noAck = false): bool|Protocol\MethodBasicGetOkFrame|Protocol\MethodBasicGetEmptyFrame
+    public function get(string $queue = '', bool $noAck = false): Protocol\MethodBasicGetOkFrame|Protocol\MethodBasicGetEmptyFrame
     {
         return $this->getClient()->get($this->getChannelId(), $queue, $noAck);
     }
@@ -179,7 +179,7 @@ trait ChannelMethods
     /**
      * Calls basic.recover AMQP method.
      */
-    public function recover(bool $requeue = false): bool|Protocol\MethodBasicRecoverOkFrame
+    public function recover(bool $requeue = false): Protocol\MethodBasicRecoverOkFrame
     {
         return $this->getClient()->recover($this->getChannelId(), $requeue);
     }
@@ -195,7 +195,7 @@ trait ChannelMethods
     /**
      * Calls tx.select AMQP method.
      */
-    public function txSelect(): bool|Protocol\MethodTxSelectOkFrame
+    public function txSelect(): Protocol\MethodTxSelectOkFrame
     {
         return $this->getClient()->txSelect($this->getChannelId());
     }
@@ -203,7 +203,7 @@ trait ChannelMethods
     /**
      * Calls tx.commit AMQP method.
      */
-    public function txCommit(): bool|Protocol\MethodTxCommitOkFrame
+    public function txCommit(): Protocol\MethodTxCommitOkFrame
     {
         return $this->getClient()->txCommit($this->getChannelId());
     }
@@ -211,7 +211,7 @@ trait ChannelMethods
     /**
      * Calls tx.rollback AMQP method.
      */
-    public function txRollback(): bool|Protocol\MethodTxRollbackOkFrame
+    public function txRollback(): Protocol\MethodTxRollbackOkFrame
     {
         return $this->getClient()->txRollback($this->getChannelId());
     }

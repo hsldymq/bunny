@@ -264,7 +264,7 @@ $connectionContent .= "\n";
 $connectionContent .= "    /** @var array<string,mixed> */\n";
 $connectionContent .= "    private array \$cache = [];\n";
 $connectionContent .= "\n";
-$connectionContent .= "    /** @var array<array{filter: (callable(\Bunny\Protocol\AbstractFrame): bool), promise: \React\Promise\Deferred}> */\n";
+$connectionContent .= "    /** @var array<array{filter: (callable(\Bunny\Protocol\AbstractFrame): bool), promise: \React\Promise\Deferred<\Bunny\Protocol\AbstractFrame>}> */\n";
 $connectionContent .= "    private array \$awaitList = [];\n";
 $connectionContent .= "\n";
 $connectionContent .= "    /**\n";
@@ -609,11 +609,11 @@ foreach ($spec->classes as $class) {
             $properties .= "    public $phpType \$$name" . ($defaultValue !== null ? " = {$defaultValue}" : "") . ";\n\n";
 
             if (strpos($name, 'reserved') !== 0) {
-                $clientArguments[] = $phpType . ' $' . $name . ($defaultValue !== null ? " = $defaultValue" : "");
-                $channelArguments[] = $phpType . ' $' . $name . ($defaultValue !== null ? " = $defaultValue" : "");
+                $clientArguments[] = $phpType . " \$" . $name . ($defaultValue !== null ? " = $defaultValue" : "");
+                $channelArguments[] = $phpType . " \$" . $name . ($defaultValue !== null ? " = $defaultValue" : "");
                 if ($phpType === 'array') {
-                    $clientArgumentsTypeHint[] = '@param array<string,mixed> $'. $name;
-                    $channelArgumentsTypeHint[] = '@param array<string,mixed> $'. $name;
+                    $clientArgumentsTypeHint[] = "@param array<string,mixed> \$". $name;
+                    $channelArgumentsTypeHint[] = "@param array<string,mixed> \$". $name;
                 }
                 $channelClientArguments[] = "\$$name";
             }
@@ -643,7 +643,7 @@ foreach ($spec->classes as $class) {
                 $bitVars[] = "\$frame->$name";
             } else {
                 if ($previousType === 'bit') {
-                    $consumeContent .= '                [' . implode(', ', $bitVars) . '] = $this->consumeBits($buffer, ' . count($bitVars) . ");\n";
+                    $consumeContent .= "                [" . implode(', ', $bitVars) . "] = \$this->consumeBits(\$buffer, " . count($bitVars) . ");\n";
                     $bitVars = [];
                 }
 
@@ -655,9 +655,9 @@ foreach ($spec->classes as $class) {
                 $clientAppendBitExpressions[] = "\$$name";
             } else {
                 if ($previousType === 'bit') {
-                    $appendContent .= '            $this->appendBits([' . implode(', ', $appendBitExpressions) . "], \$buffer);\n";
+                    $appendContent .= "            \$this->appendBits([" . implode(', ', $appendBitExpressions) . "], \$buffer);\n";
                     $appendBitExpressions = [];
-                    $clientAppendContent .= '        $this->writer->appendBits([' . implode(', ', $clientAppendBitExpressions) . "], \$buffer);\n";
+                    $clientAppendContent .= "        \$this->writer->appendBits([" . implode(', ', $clientAppendBitExpressions) . "], \$buffer);\n";
                     $clientAppendBitExpressions = [];
                 }
 
@@ -709,11 +709,11 @@ foreach ($spec->classes as $class) {
 
         $consumeMethodFrameContent .= "if (\$methodId === $methodIdConstant) {\n";
         $consumeMethodFrameContent .= $consumeContent;
-        $consumeMethodFrameContent .= '            } else';
+        $consumeMethodFrameContent .= "            } else";
 
         $appendMethodFrameContent .= "if (\$frame instanceof $className) {\n";
         $appendMethodFrameContent .= $appendContent;
-        $appendMethodFrameContent .= '        } else';
+        $appendMethodFrameContent .= "        } else";
 
         $methodName = dashedToCamel(($class->name !== 'basic' ? $class->name . '-' : "") . $method->name);
 
@@ -723,7 +723,7 @@ foreach ($spec->classes as $class) {
                 $connectionContent .= "     * ".implode("\n     * ", $channelArgumentsTypeHint) . "\n";
                 $connectionContent .= "     */\n";
             }
-            $connectionContent .= "    public function " . lcfirst($methodName) . "(" . implode(", ", $clientArguments) . "): bool" . (isset($method->synchronous) && $method->synchronous ? "|Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame") : "") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "") . "\n";
+            $connectionContent .= "    public function " . lcfirst($methodName) . "(" . implode(", ", $clientArguments) . "): ". ((!isset($method->synchronous) || !$method->synchronous || $hasNowait) ? "bool" : "") . (isset($method->synchronous) && $method->synchronous ? (($hasNowait ? "|" : "") . "Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame")) : "") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "") . "\n";
             $connectionContent .= "    {\n";
 
             $indent = "";
@@ -773,19 +773,19 @@ foreach ($spec->classes as $class) {
 
                 foreach (
                     [
-                        ContentHeaderFrame::FLAG_CONTENT_TYPE => ['content-type', 1, '$contentTypeLength = strlen($contentType)'],
-                        ContentHeaderFrame::FLAG_CONTENT_ENCODING => ['content-encoding', 1, '$contentEncodingLength = strlen($contentEncoding)'],
+                        ContentHeaderFrame::FLAG_CONTENT_TYPE => ['content-type', 1, "\$contentTypeLength = strlen(\$contentType)"],
+                        ContentHeaderFrame::FLAG_CONTENT_ENCODING => ['content-encoding', 1, "\$contentEncodingLength = strlen(\$contentEncoding)"],
                         ContentHeaderFrame::FLAG_DELIVERY_MODE => ['delivery-mode', 1, null],
                         ContentHeaderFrame::FLAG_PRIORITY => ['priority', 1, null],
-                        ContentHeaderFrame::FLAG_CORRELATION_ID => ['correlation-id', 1, '$correlationIdLength = strlen($correlationId)'],
-                        ContentHeaderFrame::FLAG_REPLY_TO => ['reply-to', 1, '$replyToLength = strlen($replyTo)'],
-                        ContentHeaderFrame::FLAG_EXPIRATION => ['expiration', 1, '$expirationLength = strlen($expiration)'],
-                        ContentHeaderFrame::FLAG_MESSAGE_ID => ['message-id', 1, '$messageIdLength = strlen($messageId)'],
+                        ContentHeaderFrame::FLAG_CORRELATION_ID => ['correlation-id', 1, "\$correlationIdLength = strlen(\$correlationId)"],
+                        ContentHeaderFrame::FLAG_REPLY_TO => ['reply-to', 1, "\$replyToLength = strlen(\$replyTo)"],
+                        ContentHeaderFrame::FLAG_EXPIRATION => ['expiration', 1, "\$expirationLength = strlen(\$expiration)"],
+                        ContentHeaderFrame::FLAG_MESSAGE_ID => ['message-id', 1, "\$messageIdLength = strlen(\$messageId)"],
                         ContentHeaderFrame::FLAG_TIMESTAMP => ['timestamp', 8, null],
-                        ContentHeaderFrame::FLAG_TYPE => ['type', 1, '$typeLength = strlen($type)'],
-                        ContentHeaderFrame::FLAG_USER_ID => ['user-id', 1, '$userIdLength = strlen($userId)'],
-                        ContentHeaderFrame::FLAG_APP_ID => ['app-id', 1, '$appIdLength = strlen($appId)'],
-                        ContentHeaderFrame::FLAG_CLUSTER_ID => ['cluster-id', 1, '$clusterIdLength = strlen($clusterId)'],
+                        ContentHeaderFrame::FLAG_TYPE => ['type', 1, "\$typeLength = strlen(\$type)"],
+                        ContentHeaderFrame::FLAG_USER_ID => ['user-id', 1, "\$userIdLength = strlen(\$userId)"],
+                        ContentHeaderFrame::FLAG_APP_ID => ['app-id', 1, "\$appIdLength = strlen(\$appId)"],
+                        ContentHeaderFrame::FLAG_CLUSTER_ID => ['cluster-id', 1, "\$clusterIdLength = strlen(\$clusterId)"],
                     ] as $flag => $property
                 ) {
                     [$propertyName, $staticSize, $dynamicSize] = $property;
@@ -857,7 +857,7 @@ foreach ($spec->classes as $class) {
                     $connectionContent .= $indent."        }\n\n";
                 }
 
-                $connectionContent .= $indent.'        $buffer->appendUint8(' . Constants::FRAME_END . ");\n";
+                $connectionContent .= $indent."        \$buffer->appendUint8(" . Constants::FRAME_END . ");\n";
 
                 if ($class->id === 60 && $method->id === 40) {
                     $connectionContent .= $indent."        \$len1 = \$buffer->getLength() - \$off1;\n";
@@ -912,10 +912,10 @@ foreach ($spec->classes as $class) {
             // async await
             $connectionContent .= "        \$deferred = new Deferred();\n";
             $connectionContent .= "        \$this->awaitList[] = [\n";
-            $connectionContent .= "            'filter' => function (Protocol\\AbstractFrame \$frame)" . ($class->id !== 10 ? ' use ($channel)' : "") . ": bool {\n";
+            $connectionContent .= "            'filter' => function (Protocol\\AbstractFrame \$frame)" . ($class->id !== 10 ? " use (\$channel)" : "") . ": bool {\n";
 
             if ($class->id !== 10 || $method->id !== 50) {
-                $connectionContent .= "                if (\$frame instanceof Protocol\\{$className}" . ($class->id !== 10 ? ' && $frame->channel === $channel' : "") . ") {\n";
+                $connectionContent .= "                if (\$frame instanceof Protocol\\{$className}" . ($class->id !== 10 ? " && \$frame->channel === \$channel" : "") . ") {\n";
                 $connectionContent .= "                    return true;\n";
                 $connectionContent .= "                }\n";
                 $connectionContent .= "\n";
@@ -967,7 +967,7 @@ foreach ($spec->classes as $class) {
                 $channelMethodsContent .= "\n";
             }
             $channelMethodsContent .= "     */\n";
-            $channelMethodsContent .= "    public function " . lcfirst($methodName) . "(" . implode(", ", $channelArguments) . "): bool" . (isset($method->synchronous) && $method->synchronous ? "|Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame") : "") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "") . "\n";
+            $channelMethodsContent .= "    public function " . lcfirst($methodName) . "(" . implode(", ", $channelArguments) . "): ". ((!isset($method->synchronous) || !$method->synchronous || $hasNowait) ? "bool" : "") . (isset($method->synchronous) && $method->synchronous ? (($hasNowait ? "|" : "") . "Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame")) : "") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "") . "\n";
             $channelMethodsContent .= "    {\n";
             $channelMethodsContent .= "        return \$this->getClient()->" . lcfirst($methodName) . "(" . implode(", ", $channelClientArguments) . ");\n";
             $channelMethodsContent .= "    }\n\n";

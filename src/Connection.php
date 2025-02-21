@@ -47,7 +47,7 @@ final class Connection
     /** @var array<string,mixed> */
     private array $cache = [];
 
-    /** @var array<array{filter: (callable(\Bunny\Protocol\AbstractFrame): bool), promise: \React\Promise\Deferred}> */
+    /** @var array<array{filter: (callable(\Bunny\Protocol\AbstractFrame): bool), promise: \React\Promise\Deferred<\Bunny\Protocol\AbstractFrame>}> */
     private array $awaitList = [];
 
     /**
@@ -335,7 +335,7 @@ final class Connection
         return false;
     }
 
-    public function connectionOpen(string $virtualHost = '/', string $capabilities = '', bool $insist = false): bool|Protocol\MethodConnectionOpenOkFrame
+    public function connectionOpen(string $virtualHost = '/', string $capabilities = '', bool $insist = false): Protocol\MethodConnectionOpenOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -377,7 +377,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function connectionClose(int $replyCode, int $closeClassId, int $closeMethodId, string $replyText = ''): bool|Protocol\MethodConnectionCloseOkFrame
+    public function connectionClose(int $replyCode, int $closeClassId, int $closeMethodId, string $replyText = ''): Protocol\MethodConnectionCloseOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -498,7 +498,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function channelOpen(int $channel, string $outOfBand = ''): bool|Protocol\MethodChannelOpenOkFrame
+    public function channelOpen(int $channel, string $outOfBand = ''): Protocol\MethodChannelOpenOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -543,7 +543,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function channelFlow(int $channel, bool $active): bool|Protocol\MethodChannelFlowOkFrame
+    public function channelFlow(int $channel, bool $active): Protocol\MethodChannelFlowOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -722,7 +722,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function accessRequest(int $channel, string $realm = '/data', bool $exclusive = false, bool $passive = true, bool $active = true, bool $write = true, bool $read = true): bool|Protocol\MethodAccessRequestOkFrame
+    public function accessRequest(int $channel, string $realm = '/data', bool $exclusive = false, bool $passive = true, bool $active = true, bool $write = true, bool $read = true): Protocol\MethodAccessRequestOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -1218,7 +1218,7 @@ final class Connection
     /**
      * @param array<string,mixed> $arguments
      */
-    public function queueUnbind(int $channel, string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): bool|Protocol\MethodQueueUnbindOkFrame
+    public function queueUnbind(int $channel, string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): Protocol\MethodQueueUnbindOkFrame
     {
         $buffer = new Buffer();
         $buffer->appendUint16(50);
@@ -1270,7 +1270,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function qos(int $channel, int $prefetchSize = 0, int $prefetchCount = 0, bool $global = false): bool|Protocol\MethodBasicQosOkFrame
+    public function qos(int $channel, int $prefetchSize = 0, int $prefetchCount = 0, bool $global = false): Protocol\MethodBasicQosOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -1715,7 +1715,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function get(int $channel, string $queue = '', bool $noAck = false): bool|Protocol\MethodBasicGetOkFrame|Protocol\MethodBasicGetEmptyFrame
+    public function get(int $channel, string $queue = '', bool $noAck = false): Protocol\MethodBasicGetOkFrame|Protocol\MethodBasicGetEmptyFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -1842,7 +1842,7 @@ final class Connection
         return false;
     }
 
-    public function recover(int $channel, bool $requeue = false): bool|Protocol\MethodBasicRecoverOkFrame
+    public function recover(int $channel, bool $requeue = false): Protocol\MethodBasicRecoverOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -1931,7 +1931,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function txSelect(int $channel): bool|Protocol\MethodTxSelectOkFrame
+    public function txSelect(int $channel): Protocol\MethodTxSelectOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -1974,7 +1974,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function txCommit(int $channel): bool|Protocol\MethodTxCommitOkFrame
+    public function txCommit(int $channel): Protocol\MethodTxCommitOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);
@@ -2017,7 +2017,7 @@ final class Connection
         return await($deferred->promise());
     }
 
-    public function txRollback(int $channel): bool|Protocol\MethodTxRollbackOkFrame
+    public function txRollback(int $channel): Protocol\MethodTxRollbackOkFrame
     {
         $buffer = $this->writeBuffer;
         $buffer->appendUint8(1);

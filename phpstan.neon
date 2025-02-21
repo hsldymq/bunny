@@ -1,0 +1,30 @@
+parameters:
+	level: 7
+	paths:
+		- src
+		- test
+	ignoreErrors:
+		-
+			identifier: offsetAccess.nonArray
+			path: src/Protocol/Buffer.php
+			count: 20
+		-
+			identifier: offsetAccess.nonOffsetAccessible
+			path: src/Protocol/Buffer.php
+			count: 9
+		-
+			identifier: deadCode.unreachable
+			path: src/Channel.php
+			count: 1
+		-
+			message: '#^Parameter \#1 \$stream of function React\\Promise\\Stream\buffer expects React\\Stream\\ReadableStreamInterface<string>, React\\Stream\\ReadableStreamInterface\|React\\Stream\\WritableStreamInterfac\e|null given\.$#'
+			path: test/ClientTest.php
+			count: 2
+		-
+			identifier: identical.alwaysFalse
+			path: test/ClientTest.php
+			count: 1
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with bool\|int will always evaluate to false\.$#'
+			path: test/ClientTest.php
+			count: 1

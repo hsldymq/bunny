@@ -33,6 +33,7 @@ use React\Promise\PromiseInterface;
 use SplQueue;
 use function React\Async\async;
 use function React\Async\await;
+use function array_splice;
 use function gettype;
 use function sprintf;
 
@@ -63,26 +64,24 @@ class Channel implements ChannelInterface, EventEmitterInterface
         ChannelMethods::confirmSelect as private confirmSelectImpl;
     }
 
-    /** @var callable[] */
+    /** @var list<callable(\Bunny\Message, \Bunny\Protocol\MethodBasicReturnFrame): void> */
     private array $returnCallbacks = [];
 
-    /** @var callable[] */
+    /** @var array<string,callable(\Bunny\Message, \Bunny\Channel, \Bunny\Client): (\React\Promise\PromiseInterface<mixed>|void)> */
     private array $deliverCallbacks = [];
 
-    /** @var bool[] */
+    /** @var array<string,bool> */
     private array $deliveryBusy = [];
 
-    /** @var \SplQueue[] */
+    /** @var array<string,\SplQueue<\Bunny\Message>> */
     private array $deliveryQueue = [];
 
-    /** @var callable[] */
+    /** @var list<callable(\Bunny\Protocol\MethodBasicAckFrame|\Bunny\Protocol\MethodBasicNackFrame): void> */
     private array $ackCallbacks = [];
 
     private ?MethodBasicReturnFrame $returnFrame = null;
 
     private ?MethodBasicDeliverFrame $deliverFrame = null;
-
-    private ?MethodBasicGetOkFrame $getOkFrame = null;
 
     private ?ContentHeaderFrame $headerFrame = null;
 
@@ -94,11 +93,11 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     private ChannelMode $mode = ChannelMode::Regular;
 
+    /** @var \React\Promise\Deferred<int>|null */
     private ?Deferred $closeDeferred = null;
 
+    /** @var \React\Promise\PromiseInterface<void>|null */
     private ?PromiseInterface $closePromise = null;
-
-    private ?Deferred $getDeferred = null;
 
     private ?int $deliveryTag = null;
 
@@ -131,7 +130,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Listener is called whenever 'basic.return' frame is received with arguments (Message $returnedMessage, MethodBasicReturnFrame $frame)
      *
-     * @return $this
+     * @param callable(\Bunny\Message, \Bunny\Protocol\MethodBasicReturnFrame): void $callback
      */
     public function addReturnListener(callable $callback): self
     {
@@ -143,14 +142,12 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     /**
      * Removes registered return listener. If the callback is not registered, this is noop.
-     *
-     * @return $this
      */
     public function removeReturnListener(callable $callback): self
     {
         foreach ($this->returnCallbacks as $k => $v) {
             if ($v === $callback) {
-                unset($this->returnCallbacks[$k]);
+                array_splice($this->returnCallbacks, $k, 1);
             }
         }
 
@@ -160,7 +157,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Listener is called whenever 'basic.ack' or 'basic.nack' is received.
      *
-     * @return $this
+     * @param callable(\Bunny\Protocol\MethodBasicAckFrame|\Bunny\Protocol\MethodBasicNackFrame): void $callback
      */
     public function addAckListener(callable $callback): self
     {
@@ -176,8 +173,6 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     /**
      * Removes registered ack/nack listener. If the callback is not registered, this is noop.
-     *
-     * @return $this
      */
     public function removeAckListener(callable $callback): self
     {
@@ -187,7 +182,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
         foreach ($this->ackCallbacks as $k => $v) {
             if ($v === $callback) {
-                unset($this->ackCallbacks[$k]);
+                array_splice($this->ackCallbacks, $k, 1);
             }
         }
 
@@ -273,10 +268,6 @@ class Channel implements ChannelInterface, EventEmitterInterface
      */
     public function get(string $queue = '', bool $noAck = false): Message|null
     {
-        if ($this->getDeferred !== null) {
-            throw new ChannelException("Another 'basic.get' already in progress. You should use 'basic.consume' instead of multiple 'basic.get'.");
-        }
-
         $response = $this->getImpl($queue, $noAck);
 
         if ($response instanceof MethodBasicGetEmptyFrame) {
@@ -395,7 +386,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Changes channel to confirm mode. Broker then asynchronously sends 'basic.ack's for published messages.
      */
-    public function confirmSelect(?callable $callback = null, bool $nowait = false): MethodConfirmSelectOkFrame
+    public function confirmSelect(?callable $callback = null, bool $nowait = false): bool|MethodConfirmSelectOkFrame
     {
         if ($this->mode !== ChannelMode::Regular) {
             throw new ChannelException('Channel not in regular mode, cannot change to transactional mode.');
@@ -601,24 +592,6 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
             $this->deliverFrame = null;
             $this->headerFrame = null;
-        } elseif ($this->getOkFrame) {
-            $content = $this->bodyBuffer->consume($this->bodyBuffer->getLength());
-
-            // deferred has to be first nullified and then resolved, otherwise results in race condition
-            $deferred = $this->getDeferred;
-            $this->getDeferred = null;
-            $deferred->resolve(new Message(
-                null,
-                $this->getOkFrame->deliveryTag,
-                $this->getOkFrame->redelivered,
-                $this->getOkFrame->exchange,
-                $this->getOkFrame->routingKey,
-                $this->headerFrame->toArray(),
-                $content,
-            ));
-
-            $this->getOkFrame = null;
-            $this->headerFrame = null;
         } else {
             throw new LogicException('Either return or deliver frame has to be handled here.');
         }
@@ -626,7 +599,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     private function deliveryTick(string $consumerTag): void
     {
-        if ($this->deliveryBusy[$consumerTag] === true || $this->deliveryQueue[$consumerTag]->isEmpty()) {
+        if ($this->deliveryBusy[$consumerTag] === true || empty($this->deliveryQueue[$consumerTag]) || $this->deliveryQueue[$consumerTag]->isEmpty()) {
             return;
         }
 

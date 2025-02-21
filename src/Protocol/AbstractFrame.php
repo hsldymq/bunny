@@ -26,16 +26,11 @@ abstract class AbstractFrame
 {
 
     public function __construct(
-        public ?int $type = null,
+        public int $type,
         public ?int $channel = null,
         public ?int $payloadSize = null,
         public string|Buffer|null $payload = null,
     ) {
-    }
-
-    public static function create(): self
-    {
-        return new static();
     }
 
 }
