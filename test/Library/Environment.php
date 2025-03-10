@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test\Library;
 
@@ -9,7 +9,6 @@ use function trim;
 
 final class Environment
 {
-
     public static function getSslCa(): string
     {
         return trim(self::getenv('SSL_CA'));
@@ -66,5 +65,4 @@ final class Environment
 
         return $value !== false ? $value : $default;
     }
-
 }

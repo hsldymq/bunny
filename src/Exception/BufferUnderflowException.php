@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Exception;
 
@@ -15,5 +15,4 @@ use Bunny\Protocol\Buffer;
  */
 class BufferUnderflowException extends BunnyException
 {
-
 }

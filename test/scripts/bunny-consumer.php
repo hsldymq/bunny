@@ -3,8 +3,7 @@
 
 // Usage: bunny-consumer.php <amqp-uri> <queue-name> <max-seconds>
 
-
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test\App;
 
@@ -45,14 +44,14 @@ function app(array $args): void
     });
 }
 
-$argv_copy = $argv;
+$argvCopy = $argv;
 
-array_shift($argv_copy);
+array_shift($argvCopy);
 
 $args = [
-    'amqpUri' => array_shift($argv_copy),
-    'queueName' => array_shift($argv_copy),
-    'maxSeconds' => (int) array_shift($argv_copy),
+    'amqpUri' => array_shift($argvCopy),
+    'queueName' => array_shift($argvCopy),
+    'maxSeconds' => (int) array_shift($argvCopy),
 ];
 
 app($args);

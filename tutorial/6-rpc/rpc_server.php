@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Bunny\Channel;
 use Bunny\Client;
@@ -26,12 +26,12 @@ $channel = $client->channel();
 
 $channel->queueDeclare('rpc_queue');
 
-echo " [x] Awaiting RPC requests\n";
+echo ' [x] Awaiting RPC requests' . PHP_EOL;
 
 $channel->consume(
     static function (Message $message, Channel $channel, Client $client): void {
         $n = intval($message->content);
-        echo ' [.] fib(', $n, ")\n";
+        echo ' [.] fib(' . $n . ')' . PHP_EOL;
         $channel->publish(
             (string) fib($n),
             [

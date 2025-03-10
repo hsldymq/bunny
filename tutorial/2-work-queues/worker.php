@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Bunny\Channel;
 use Bunny\Client;
@@ -18,9 +18,9 @@ echo ' [*] Waiting for messages. To exit press CTRL+C', "\n";
 $channel->qos(0, 1);
 $channel->consume(
     static function (Message $message, Channel $channel, Client $client): void {
-        echo ' [x] Received ', $message->content, "\n";
+        echo ' [x] Received ' . $message->content . PHP_EOL;
         sleep(substr_count($message->content, '.'));
-        echo ' [x] Done', "\n";
+        echo ' [x] Done' . PHP_EOL;
         $channel->ack($message);
     },
     'task_queue',

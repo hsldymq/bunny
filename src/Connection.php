@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -39,7 +39,6 @@ use function substr;
  */
 final class Connection
 {
-
     protected ?TimerInterface $heartbeatTimer = null;
 
     protected float $lastWrite = 0.0;
@@ -2134,5 +2133,4 @@ final class Connection
             $this->heartbeatTimer = Loop::addTimer($nextHeartbeat - $now, [$this, 'onHeartbeat']);
         }
     }
-
 }

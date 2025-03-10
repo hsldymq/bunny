@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -11,7 +11,6 @@ namespace Bunny;
  */
 enum ClientState
 {
-
     /**
      * Client is not connected. Method connect() hasn't been called yet.
      */
@@ -36,5 +35,4 @@ enum ClientState
      * An error has occurred.
      */
     case Error;
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -44,7 +44,6 @@ use function strpos;
  */
 class Client implements ClientInterface
 {
-
     /**
      * @var array<string, mixed>
      */
@@ -222,7 +221,7 @@ class Client implements ClientInterface
     protected function authResponse(MethodConnectionStartFrame $start): void
     {
         if (strpos($start->mechanisms, 'AMQPLAIN') === false) {
-            throw new ClientException('Server does not support AMQPLAIN mechanism (supported: {$start->mechanisms}).');
+            throw new ClientException(sprintf('Server does not support AMQPLAIN mechanism (supported: %s).', $start->mechanisms));
         }
 
         $responseBuffer = new Buffer();
@@ -302,5 +301,4 @@ class Client implements ClientInterface
 
         throw new ClientException('No available channels');
     }
-
 }

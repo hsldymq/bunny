@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -8,7 +8,6 @@ use function array_key_exists;
 
 final class Channels
 {
-
     /**
      * @var array<int, \Bunny\Channel>
      */
@@ -41,5 +40,4 @@ final class Channels
     {
         yield from $this->channels;
     }
-
 }

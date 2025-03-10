@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -23,7 +23,6 @@ use DateTime;
  */
 class ContentHeaderFrame extends AbstractFrame
 {
-
     public const FLAG_CONTENT_TYPE = 0x8000;
 
     public const FLAG_CONTENT_ENCODING = 0x4000;
@@ -256,5 +255,4 @@ class ContentHeaderFrame extends AbstractFrame
 
         return $headers;
     }
-
 }

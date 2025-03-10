@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodConnectionTuneOkFrame extends MethodFrame
 {
-
     public int $channelMax = 0;
 
     public int $frameMax = 0;
@@ -28,5 +27,4 @@ class MethodConnectionTuneOkFrame extends MethodFrame
 
         $this->channel = Constants::CONNECTION_CHANNEL;
     }
-
 }

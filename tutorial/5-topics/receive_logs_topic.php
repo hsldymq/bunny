@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Bunny\Channel;
 use Bunny\Client;
@@ -14,22 +14,22 @@ $channel = $client->channel();
 $channel->exchangeDeclare('topic_logs', 'topic');
 $queue = $channel->queueDeclare('', false, false, true, false);
 
-$binding_keys = array_slice($argv, 1);
-if (empty($binding_keys)) {
-    file_put_contents('php://stderr', "Usage: $argv[0] [binding_key]\n");
+$bindingKeys = array_slice($argv, 1);
+if (empty($bindingKeys)) {
+    file_put_contents('php://stderr', sprintf("Usage: %s [binding_key]\n", $argv[0]));
     $client->disconnect();
     exit(1);
 }
 
-foreach ($binding_keys as $binding_key) {
-    $channel->queueBind('topic_logs', $queue->queue, $binding_key);
+foreach ($bindingKeys as $bindingKey) {
+    $channel->queueBind('topic_logs', $queue->queue, $bindingKey);
 }
 
 echo ' [*] Waiting for logs. To exit press CTRL+C', "\n";
 
 $channel->consume(
     static function (Message $message, Channel $channel, Client $client): void {
-        echo ' [x] ', $message->routingKey, ':', $message->content, "\n";
+        echo ' [x] ' . $message->routingKey . ':' . $message->content . PHP_EOL;
     },
     $queue->queue,
     '',

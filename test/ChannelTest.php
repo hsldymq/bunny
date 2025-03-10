@@ -2,7 +2,7 @@
 
 /** @noinspection PhpUnhandledExceptionInspection */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test;
 
@@ -16,7 +16,6 @@ use function str_repeat;
 
 class ChannelTest extends TestCase
 {
-
     use RunTestsInFibersTrait;
 
     private ClientHelper $helper;
@@ -144,5 +143,4 @@ class ChannelTest extends TestCase
         $c->disconnect();
         self::assertFalse($c->isConnected());
     }
-
 }

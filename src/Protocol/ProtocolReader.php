@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -22,7 +22,6 @@ use function sprintf;
  */
 class ProtocolReader
 {
-
     use ProtocolReaderGenerated;
 
     /**
@@ -288,5 +287,4 @@ class ProtocolReader
                 );
         }
     }
-
 }

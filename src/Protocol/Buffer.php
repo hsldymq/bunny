@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -26,7 +26,6 @@ use const PHP_INT_SIZE;
  */
 class Buffer
 {
-
     private static ?bool $isLittleEndian = null;
 
     private static ?bool $native64BitPack = null;
@@ -594,5 +593,4 @@ class Buffer
 
         return $this->append(self::$isLittleEndian ? self::swapEndian64($s) : $s);
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Exception;
 
@@ -11,10 +11,8 @@ namespace Bunny\Exception;
  */
 class FrameEndInvalidException extends ProtocolException
 {
-
     public function __construct()
     {
         parent::__construct('AbstractFrame end byte is invalid.');
     }
-
 }

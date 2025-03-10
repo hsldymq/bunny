@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -17,7 +17,6 @@ use Bunny\Exception\InvalidMethodException;
  */
 trait ProtocolReaderGenerated
 {
-
     /**
      * Consumes AMQP table from buffer.
      *
@@ -335,5 +334,4 @@ trait ProtocolReaderGenerated
 
         return $frame;
     }
-
 }

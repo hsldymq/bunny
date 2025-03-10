@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test;
 
@@ -28,7 +28,6 @@ use const SIGINT;
 
 class ClientTest extends TestCase
 {
-
     use RunTestsInFibersTrait;
 
     private ClientHelper $helper;
@@ -360,5 +359,4 @@ class ClientTest extends TestCase
 
         self::assertFalse($client->isConnected());
     }
-
 }

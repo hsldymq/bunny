@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test\Library;
 
@@ -9,7 +9,6 @@ use function array_merge;
 
 final class ClientHelper
 {
-
     /**
      * @param array<string, mixed>|null $options
      */
@@ -31,5 +30,4 @@ final class ClientHelper
 
         return $options;
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodQueueUnbindFrame extends MethodFrame
 {
-
     public string $exchange;
 
     public int $reserved1 = 0;
@@ -31,5 +30,4 @@ class MethodQueueUnbindFrame extends MethodFrame
     {
         parent::__construct(Constants::CLASS_QUEUE, Constants::METHOD_QUEUE_UNBIND);
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -24,7 +24,6 @@ namespace Bunny\Protocol;
  */
 abstract class AbstractFrame
 {
-
     public function __construct(
         public int $type,
         public ?int $channel = null,
@@ -32,5 +31,4 @@ abstract class AbstractFrame
         public string|Buffer|null $payload = null,
     ) {
     }
-
 }

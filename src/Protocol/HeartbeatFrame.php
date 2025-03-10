@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,10 +15,8 @@ use Bunny\Constants;
  */
 class HeartbeatFrame extends AbstractFrame
 {
-
     public function __construct()
     {
         parent::__construct(Constants::FRAME_HEARTBEAT, Constants::CONNECTION_CHANNEL, 0, '');
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodAccessRequestFrame extends MethodFrame
 {
-
     public string $realm = '/data';
 
     public bool $exclusive = false;
@@ -32,5 +31,4 @@ class MethodAccessRequestFrame extends MethodFrame
     {
         parent::__construct(Constants::CLASS_ACCESS, Constants::METHOD_ACCESS_REQUEST);
     }
-
 }

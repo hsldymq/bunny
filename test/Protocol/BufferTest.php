@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test\Protocol;
 
@@ -10,9 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 class BufferTest extends TestCase
 {
-
-    // basic functions
-
     public function testGetLength(): void
     {
         $buf = new Buffer();
@@ -219,8 +216,6 @@ class BufferTest extends TestCase
         self::assertEquals('abcdef', $buf->read(6));
     }
 
-    // 8-bit integer functions
-
     public function testReadUint8(): void
     {
         self::assertEquals(0xA9, (new Buffer("\xA9"))->readUint8());
@@ -250,8 +245,6 @@ class BufferTest extends TestCase
     {
         self::assertEquals("\xA9", (new Buffer())->appendInt8(0xA9 - 0x100)->read(1));
     }
-
-    // 16-bit integer functions
 
     public function testReadUint16(): void
     {
@@ -283,8 +276,6 @@ class BufferTest extends TestCase
         self::assertEquals("\xA9\x78", (new Buffer())->appendInt16(0xA978)->read(2));
     }
 
-    // 32-bit integer functions
-
     public function testReadUint32(): void
     {
         self::assertEquals(0xA9782361, (new Buffer("\xA9\x78\x23\x61"))->readUint32());
@@ -314,8 +305,6 @@ class BufferTest extends TestCase
     {
         self::assertEquals("\xA9\x78\x23\x61", (new Buffer())->appendInt32(0xA9782361)->read(4));
     }
-
-    // 64-bit integer functions
 
     public function testReadUint64(): void
     {
@@ -347,8 +336,6 @@ class BufferTest extends TestCase
         self::assertEquals("\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE", (new Buffer())->appendInt64(-2)->read(8));
     }
 
-    // float
-
     public function testReadFloat(): void
     {
         self::assertEquals(1.5, (new Buffer("\x3F\xC0\x00\x00"))->readFloat());
@@ -364,8 +351,6 @@ class BufferTest extends TestCase
         self::assertEquals("\x3F\xC0\x00\x00", (new Buffer())->appendFloat(1.5)->read(4));
     }
 
-    // double
-
     public function testReadDouble(): void
     {
         self::assertEquals(1.5, (new Buffer("\x3F\xF8\x00\x00\x00\x00\x00\x00"))->readDouble());
@@ -380,5 +365,4 @@ class BufferTest extends TestCase
     {
         self::assertEquals("\x3F\xF8\x00\x00\x00\x00\x00\x00", (new Buffer())->appendDouble(1.5)->read(8));
     }
-
 }

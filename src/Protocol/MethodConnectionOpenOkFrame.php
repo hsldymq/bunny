@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodConnectionOpenOkFrame extends MethodFrame
 {
-
     public string $knownHosts = '';
 
     public function __construct()
@@ -24,5 +23,4 @@ class MethodConnectionOpenOkFrame extends MethodFrame
 
         $this->channel = Constants::CONNECTION_CHANNEL;
     }
-
 }

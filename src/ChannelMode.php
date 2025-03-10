@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -11,7 +11,6 @@ namespace Bunny;
  */
 enum ChannelMode
 {
-
     /**
      * Regular AMQP guarantees of published messages delivery.
      */
@@ -26,5 +25,4 @@ enum ChannelMode
      * Broker sends asynchronously 'basic.ack's for delivered messages.
      */
     case Confirm;
-
 }

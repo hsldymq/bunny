@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -17,6 +17,7 @@ use function file_put_contents;
 use function implode;
 use function json_decode;
 use function lcfirst;
+use function sprintf;
 use function str_replace;
 use function strpos;
 use function strtoupper;
@@ -88,7 +89,7 @@ function amqpTypeToAppend(string $type, string $e): string
         'octet' => "\$buffer->appendUint8($e)",
         'table' => "\$this->appendTable($e, \$buffer)",
         'longstr' => "\$buffer->appendUint32(strlen($e));\n\$buffer->append($e)",
-        'shortstr' => "\$buffer->appendUint8(strlen($e));\n\$buffer->append({$e})",
+        'shortstr' => "\$buffer->appendUint8(strlen($e));\n\$buffer->append($e)",
         'short' => "\$buffer->appendInt16($e)",
         'long' => "\$buffer->appendInt32($e)",
         'longlong' => "\$buffer->appendInt64($e)",
@@ -115,7 +116,7 @@ function amqpTypeToLength(string $type, string $e): array
 
 $protocolReaderContent = "<?php\n";
 $protocolReaderContent .= "\n";
-$protocolReaderContent .= "declare(strict_types = 1);\n";
+$protocolReaderContent .= "declare(strict_types=1);\n";
 $protocolReaderContent .= "\n";
 $protocolReaderContent .= "namespace Bunny\\Protocol;\n";
 $protocolReaderContent .= "\n";
@@ -132,7 +133,6 @@ $protocolReaderContent .= " * @author Jakub Kulhan <jakub.kulhan@gmail.com>\n";
 $protocolReaderContent .= " */\n";
 $protocolReaderContent .= "trait ProtocolReaderGenerated\n";
 $protocolReaderContent .= "{\n";
-$protocolReaderContent .= "\n";
 $protocolReaderContent .= "    /**\n";
 $protocolReaderContent .= "     * Consumes AMQP table from buffer.\n";
 $protocolReaderContent .= "     *\n";
@@ -159,7 +159,7 @@ $consumeMethodFrameContent .= "        ";
 
 $protocolWriterContent = "<?php\n";
 $protocolWriterContent .= "\n";
-$protocolWriterContent .= "declare(strict_types = 1);\n";
+$protocolWriterContent .= "declare(strict_types=1);\n";
 $protocolWriterContent .= "\n";
 $protocolWriterContent .= "namespace Bunny\\Protocol;\n";
 $protocolWriterContent .= "\n";
@@ -176,7 +176,6 @@ $protocolWriterContent .= " * @author Jakub Kulhan <jakub.kulhan@gmail.com>\n";
 $protocolWriterContent .= " */\n";
 $protocolWriterContent .= "trait ProtocolWriterGenerated\n";
 $protocolWriterContent .= "{\n";
-$protocolWriterContent .= "\n";
 
 $protocolWriterContent .= "    /**\n";
 $protocolWriterContent .= "     * Appends AMQP table to buffer.\n";
@@ -217,7 +216,7 @@ $appendMethodFrameContent .= "        ";
 
 $connectionContent = "<?php\n";
 $connectionContent .= "\n";
-$connectionContent .= "declare(strict_types = 1);\n";
+$connectionContent .= "declare(strict_types=1);\n";
 $connectionContent .= "\n";
 $connectionContent .= "namespace Bunny;\n";
 $connectionContent .= "\n";
@@ -256,7 +255,6 @@ $connectionContent .= " * @author Jakub Kulhan <jakub.kulhan@gmail.com>\n";
 $connectionContent .= " */\n";
 $connectionContent .= "final class Connection\n";
 $connectionContent .= "{\n";
-$connectionContent .= "\n";
 $connectionContent .= "    protected ?TimerInterface \$heartbeatTimer = null;\n";
 $connectionContent .= "\n";
 $connectionContent .= "    protected float \$lastWrite = 0.0;\n";
@@ -428,20 +426,19 @@ $connectionContent .= "    }\n\n";
 
 $channelMethodsContent = "<?php\n";
 $channelMethodsContent .= "\n";
-$channelMethodsContent .= "declare(strict_types = 1);\n";
+$channelMethodsContent .= "declare(strict_types=1);\n";
 $channelMethodsContent .= "\n";
 $channelMethodsContent .= "namespace Bunny;\n";
 $channelMethodsContent .= "\n";
 $channelMethodsContent .= "/**\n";
 $channelMethodsContent .= " * AMQP-{$spec->{'major-version'}}-{$spec->{'minor-version'}}-{$spec->{'revision'}} channel methods\n";
 $channelMethodsContent .= " *\n";
-$channelMethodsContent .= " * THIS CLASS IS GENERATED FROM {$specFileName}. **DO NOT EDIT!**\n";
+$channelMethodsContent .= " * THIS CLASS IS GENERATED FROM $specFileName. **DO NOT EDIT!**\n";
 $channelMethodsContent .= " *\n";
 $channelMethodsContent .= " * @author Jakub Kulhan <jakub.kulhan@gmail.com>\n";
 $channelMethodsContent .= " */\n";
 $channelMethodsContent .= "trait ChannelMethods\n";
 $channelMethodsContent .= "{\n";
-$channelMethodsContent .= "\n";
 
 $channelMethodsContent .= "    /**\n";
 $channelMethodsContent .= "     * Returns underlying client instance.\n";
@@ -459,11 +456,11 @@ foreach ($spec->classes as $class) {
     $consumeMethodFrameContent .= "if (\$classId === $classIdConstant) {\n";
     $consumeMethodFrameContent .= "            ";
 
-    foreach ($class->methods as $method) {
+    foreach ($class->methods as $i => $method) {
         $className = "Method" . ucfirst($class->name) . dashedToCamel($method->name) . "Frame";
         $content = "<?php\n";
         $content .= "\n";
-        $content .= "declare(strict_types = 1);\n";
+        $content .= "declare(strict_types=1);\n";
         $content .= "\n";
         $content .= "namespace Bunny\\Protocol;\n";
         $content .= "\n";
@@ -478,7 +475,6 @@ foreach ($spec->classes as $class) {
         $content .= " */\n";
         $content .= "class $className extends MethodFrame\n";
         $content .= "{\n";
-        $content .= "\n";
 
         $consumeContent = "                \$frame = new $className();\n";
         $appendContent = "";
@@ -548,7 +544,7 @@ foreach ($spec->classes as $class) {
                     $staticPayloadSize += 1;
                 }
             } else {
-                [$staticSize, $dynamicSize] = amqpTypeToLength($type, "\${$name}");
+                [$staticSize, $dynamicSize] = amqpTypeToLength($type, "\$$name");
 
                 if ($staticSize === null && $dynamicSize === null) {
                     $static = false;
@@ -606,7 +602,7 @@ foreach ($spec->classes as $class) {
                 $defaultValue = var_export($argument->{'default-value'}, true);
             }
 
-            $properties .= "    public $phpType \$$name" . ($defaultValue !== null ? " = {$defaultValue}" : "") . ";\n\n";
+            $properties .= "    public $phpType \$$name" . ($defaultValue !== null ? " = $defaultValue" : "") . ";\n\n";
 
             if (strpos($name, 'reserved') !== 0) {
                 $clientArguments[] = $phpType . " \$" . $name . ($defaultValue !== null ? " = $defaultValue" : "");
@@ -667,7 +663,7 @@ foreach ($spec->classes as $class) {
                 } elseif ($type === 'table') {
                     $clientAppendContent .= "        \$this->writer->appendTable(\$$name, \$buffer);\n";
                 } else {
-                    $clientAppendContent .= indent(amqpTypeToAppend($type, "\${$name}"), '        ') . ";\n";
+                    $clientAppendContent .= indent(amqpTypeToAppend($type, "\$$name"), '        ') . ";\n";
                 }
             }
 
@@ -696,13 +692,13 @@ foreach ($spec->classes as $class) {
 
         $content .= "    public function __construct()\n";
         $content .= "    {\n";
-        $content .= "        parent::__construct({$classIdConstant}, {$methodIdConstant});\n";
+        $content .= "        parent::__construct($classIdConstant, $methodIdConstant);\n";
 
         if ($class->id === 10) {
             $content .= "\n        \$this->channel = Constants::CONNECTION_CHANNEL;\n";
         }
 
-        $content .= "    }\n\n";
+        $content .= "    }\n";
         $content .= $gettersSetters;
         $content .= "}\n";
         file_put_contents(__DIR__ . "/../src/Protocol/$className.php", $content);
@@ -770,7 +766,6 @@ foreach ($spec->classes as $class) {
                 $connectionContent .= $indent."        \$s = 14;\n";
                 $connectionContent .= "\n";
 
-
                 foreach (
                     [
                         ContentHeaderFrame::FLAG_CONTENT_TYPE => ['content-type', 1, "\$contentTypeLength = strlen(\$contentType)"],
@@ -789,7 +784,7 @@ foreach ($spec->classes as $class) {
                     ] as $flag => $property
                 ) {
                     [$propertyName, $staticSize, $dynamicSize] = $property;
-                    $connectionContent .= $indent."        if (\$" . lcfirst(dashedToCamel($propertyName)) . " = \$headers['{$propertyName}'] ?? null) {\n";
+                    $connectionContent .= $indent."        if (\$" . lcfirst(dashedToCamel($propertyName)) . " = \$headers['$propertyName'] ?? null) {\n";
                     $connectionContent .= $indent."            \$flags |= $flag;\n";
                     if ($staticSize) {
                         $connectionContent .= $indent."            \$s += $staticSize;\n";
@@ -852,7 +847,7 @@ foreach ($spec->classes as $class) {
                         ContentHeaderFrame::FLAG_CLUSTER_ID => "\$buffer->appendUint8(\$clusterIdLength);\n\$buffer->append(\$clusterId);",
                     ] as $flag => $property
                 ) {
-                    $connectionContent .= $indent."        if (\$flags & {$flag}) {\n";
+                    $connectionContent .= $indent."        if (\$flags & $flag) {\n";
                     $connectionContent .= indent($property, $indent."            ")."\n";
                     $connectionContent .= $indent."        }\n\n";
                 }
@@ -906,7 +901,7 @@ foreach ($spec->classes as $class) {
         }
 
         if (!isset($method->direction) || $method->direction === 'SC') {
-            $connectionContent .= "    public function await" . $methodName . "(" . ($class->id !== 10 ? "int \$channel" : "") . "): Protocol\\{$className}" . ($class->id === 60 && $method->id === 71 ? '|Protocol\\' . str_replace("GetOk", "GetEmpty", $className) : "") . "\n";
+            $connectionContent .= "    public function await" . $methodName . "(" . ($class->id !== 10 ? "int \$channel" : "") . "): Protocol\\$className" . ($class->id === 60 && $method->id === 71 ? '|Protocol\\' . str_replace("GetOk", "GetEmpty", $className) : "") . "\n";
             $connectionContent .= "    {\n";
 
             // async await
@@ -915,7 +910,7 @@ foreach ($spec->classes as $class) {
             $connectionContent .= "            'filter' => function (Protocol\\AbstractFrame \$frame)" . ($class->id !== 10 ? " use (\$channel)" : "") . ": bool {\n";
 
             if ($class->id !== 10 || $method->id !== 50) {
-                $connectionContent .= "                if (\$frame instanceof Protocol\\{$className}" . ($class->id !== 10 ? " && \$frame->channel === \$channel" : "") . ") {\n";
+                $connectionContent .= "                if (\$frame instanceof Protocol\\$className" . ($class->id !== 10 ? " && \$frame->channel === \$channel" : "") . ") {\n";
                 $connectionContent .= "                    return true;\n";
                 $connectionContent .= "                }\n";
                 $connectionContent .= "\n";
@@ -980,6 +975,9 @@ foreach ($spec->classes as $class) {
     $consumeMethodFrameContent .= "        } else";
 }
 
+$channelMethodsContent = rtrim($channelMethodsContent, "\n");
+$channelMethodsContent .= "\n";
+
 $consumeMethodFrameContent .= " {\n";
 $consumeMethodFrameContent .= "            throw new InvalidClassException(\$classId);\n";
 $consumeMethodFrameContent .= "        }\n\n";
@@ -987,7 +985,7 @@ $consumeMethodFrameContent .= "        \$frame->classId = \$classId;\n";
 $consumeMethodFrameContent .= "        \$frame->methodId = \$methodId;\n";
 $consumeMethodFrameContent .= "\n";
 $consumeMethodFrameContent .= "        return \$frame;\n";
-$consumeMethodFrameContent .= "    }\n\n";
+$consumeMethodFrameContent .= "    }\n";
 
 $protocolReaderContent .= $consumeMethodFrameContent;
 $protocolReaderContent .= "}\n";
@@ -996,7 +994,7 @@ file_put_contents(__DIR__ . '/../src/Protocol/ProtocolReaderGenerated.php', $pro
 $appendMethodFrameContent .= " {\n";
 $appendMethodFrameContent .= "            throw new ProtocolException(sprintf('Unhandled method frame %s.', \$frame::class));\n";
 $appendMethodFrameContent .= "        }\n";
-$appendMethodFrameContent .= "    }\n\n";
+$appendMethodFrameContent .= "    }\n";
 
 $protocolWriterContent .= $appendMethodFrameContent;
 $protocolWriterContent .= "}\n";
@@ -1028,7 +1026,6 @@ $connectionContent .= "        } else {\n";
 $connectionContent .= "            \$this->heartbeatTimer = Loop::addTimer(\$nextHeartbeat - \$now, [\$this, 'onHeartbeat']);\n";
 $connectionContent .= "        }\n";
 $connectionContent .= "    }\n";
-$connectionContent .= "\n";
 $connectionContent .= "}\n";
 file_put_contents(__DIR__ . '/../src/Connection.php', $connectionContent);
 

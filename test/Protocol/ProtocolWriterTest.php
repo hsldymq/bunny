@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test\Protocol;
 
@@ -14,8 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 class ProtocolWriterTest extends TestCase
 {
-
-    public function test_appendFieldValue_canHandleDateTime(): void
+    public function testAppendFieldValueCanHandleDateTime(): void
     {
         $buffer = $this->createMock(Buffer::class);
         $protocolWriter = new ProtocolWriter();
@@ -32,7 +31,7 @@ class ProtocolWriterTest extends TestCase
         $protocolWriter->appendFieldValue($date, $buffer);
     }
 
-    public function test_appendFieldValue_canHandleDateTimeImmutable(): void
+    public function testAppendFieldValueCanHandleDateTimeImmutable(): void
     {
         $buffer = $this->createMock(Buffer::class);
         $protocolWriter = new ProtocolWriter();
@@ -50,9 +49,9 @@ class ProtocolWriterTest extends TestCase
     }
 
     /**
-     * @dataProvider provider_appendFieldValue_canHandleInt64
+     * @dataProvider providerAppendFieldValueCanHandleInt64
      */
-    public function test_appendFieldValue_canHandleInt64(int $value, bool $expectedInt64): void
+    public function testAppendFieldValueCanHandleInt64(int $value, bool $expectedInt64): void
     {
         $buffer = $this->createMock(Buffer::class);
         $protocolWriter = new ProtocolWriter();
@@ -79,7 +78,7 @@ class ProtocolWriterTest extends TestCase
     /**
      * @return iterable<array<string,mixed>>
      */
-    public static function provider_appendFieldValue_canHandleInt64(): iterable
+    public static function providerAppendFieldValueCanHandleInt64(): iterable
     {
         yield [
             'value' => 42,
@@ -91,5 +90,4 @@ class ProtocolWriterTest extends TestCase
             'expectedInt64' => true,
         ];
     }
-
 }

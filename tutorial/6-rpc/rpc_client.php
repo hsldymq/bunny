@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Bunny\Channel;
 use Bunny\ChannelInterface;
@@ -13,7 +13,6 @@ require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 class FibonacciRpcClient
 {
-
     private Client $client;
 
     private ChannelInterface $channel;
@@ -31,12 +30,12 @@ class FibonacciRpcClient
 
     public function call(int $n): int
     {
-        $corr_id = uniqid();
+        $corrId = uniqid();
         $response = new Deferred();
         $responseQueue = $this->channel->queueDeclare('', false, false, true);
         $subscription = $this->channel->consume(
-            static function (Message $message, Channel $channel, Client $client) use (&$response, $corr_id, &$subscription): void {
-                if ($message->getHeader('correlation_id') !== $corr_id) {
+            static function (Message $message, Channel $channel, Client $client) use (&$response, $corrId, &$subscription): void {
+                if ($message->getHeader('correlation_id') !== $corrId) {
                     return;
                 }
 
@@ -48,7 +47,7 @@ class FibonacciRpcClient
         $this->channel->publish(
             (string) $n,
             [
-                'correlation_id' => $corr_id,
+                'correlation_id' => $corrId,
                 'reply_to' => $responseQueue->queue,
             ],
             '',
@@ -57,10 +56,9 @@ class FibonacciRpcClient
 
         return (int) await($response->promise());
     }
-
 }
 
-$fibonacci_rpc = new FibonacciRpcClient();
-$response = $fibonacci_rpc->call(30);
-echo ' [.] Got ', $response, "\n";
-$fibonacci_rpc->close();
+$fibonacciRpc = new FibonacciRpcClient();
+$response = $fibonacciRpc->call(30);
+echo ' [.] Got ' . $response . PHP_EOL;
+$fibonacciRpc->close();

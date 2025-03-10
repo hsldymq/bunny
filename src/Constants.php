@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -11,7 +11,6 @@ namespace Bunny;
  */
 final class Constants
 {
-
     // frame related constants
     public const FRAME_METHOD = 1;
 
@@ -253,5 +252,4 @@ final class Constants
     public const FIELD_TABLE = 0x46; // 'F'
 
     public const FIELD_NULL = 0x56; // 'V'
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Bunny\Client;
 
@@ -18,7 +18,7 @@ if (empty($data)) {
 }
 
 $channel->publish($data, [], 'direct_logs', $severity);
-echo ' [x] Sent ',$severity,':',$data," \n";
+echo ' [x] Sent ' . $severity . ':' . $data . PHP_EOL;
 
 $channel->close();
 $client->disconnect();

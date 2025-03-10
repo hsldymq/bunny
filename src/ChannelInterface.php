@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -32,7 +32,6 @@ use Bunny\Protocol\MethodTxSelectOkFrame;
  */
 interface ChannelInterface
 {
-
     /**
      * Returns the channel mode.
      */
@@ -203,5 +202,4 @@ interface ChannelInterface
      * Calls basic.recover AMQP method.
      */
     public function recover(bool $requeue = false): bool|MethodBasicRecoverOkFrame;
-
 }

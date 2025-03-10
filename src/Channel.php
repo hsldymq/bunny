@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -48,7 +48,6 @@ use function sprintf;
  */
 class Channel implements ChannelInterface, EventEmitterInterface
 {
-
     use EventEmitterTrait;
     use ChannelMethods {
         ChannelMethods::consume as private consumeImpl;
@@ -621,5 +620,4 @@ class Channel implements ChannelInterface, EventEmitterInterface
             $this->deliveryTick($consumerTag);
         });
     }
-
 }

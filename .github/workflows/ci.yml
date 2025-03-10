@@ -31,8 +31,10 @@ jobs:
           tools: composer
       - name: Install Dependencies
         uses: ramsey/composer-install@v2
+      - name: Run PHPCS
+        run: ./vendor/bin/phpcs
       - name: Run PHPStan
-        run: ./vendor/bin/phpstan analyze src --level 7
+        run: ./vendor/bin/phpstan analyze
   test:
     name: "Run Tests on PHP ${{ matrix.php }} against RabbitMQ ${{ matrix.rabbitmq }} (Composer: ${{ matrix.composer }}; TLS: ${{ matrix.ssl_test }})"
     runs-on: ubuntu-latest

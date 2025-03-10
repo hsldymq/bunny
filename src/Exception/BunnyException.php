@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Exception;
 
@@ -13,5 +13,4 @@ use RuntimeException;
  */
 class BunnyException extends RuntimeException
 {
-
 }

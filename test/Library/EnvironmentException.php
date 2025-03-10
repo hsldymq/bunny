@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test\Library;
 
@@ -10,7 +10,6 @@ use function sprintf;
 
 class EnvironmentException extends RuntimeException
 {
-
     public function __construct(string $envVariable)
     {
         $value = getenv($envVariable);
@@ -19,5 +18,4 @@ class EnvironmentException extends RuntimeException
 
         parent::__construct(sprintf('Invalid value for env var %s: %s', $envVariable, $valueFormatted), 1);
     }
-
 }

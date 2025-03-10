@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Bunny\Client;
 
@@ -13,7 +13,7 @@ $channel->exchangeDeclare('logs', 'fanout');
 
 $data = implode(' ', array_slice($argv, 1));
 $channel->publish($data, [], 'logs');
-echo " [x] Sent '$data'\n";
+echo ' [x] Sent "' . $data . '"' . PHP_EOL;
 
 $channel->close();
 $client->disconnect();

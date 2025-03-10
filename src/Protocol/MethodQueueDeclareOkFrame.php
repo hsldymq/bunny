@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodQueueDeclareOkFrame extends MethodFrame
 {
-
     public string $queue;
 
     public int $messageCount;
@@ -26,5 +25,4 @@ class MethodQueueDeclareOkFrame extends MethodFrame
     {
         parent::__construct(Constants::CLASS_QUEUE, Constants::METHOD_QUEUE_DECLARE_OK);
     }
-
 }

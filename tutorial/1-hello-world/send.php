@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Bunny\Client;
 
@@ -11,7 +11,7 @@ $channel = $client->channel();
 $channel->queueDeclare('hello', false, false, false, false);
 
 $channel->publish('Hello World!', [], '', 'hello');
-echo " [x] Sent 'Hello World!'\n";
+echo ' [x] Sent "Hello World!"' . PHP_EOL;
 
 $channel->close();
 $client->disconnect();

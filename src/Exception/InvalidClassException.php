@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Exception;
 
@@ -13,7 +13,6 @@ use function sprintf;
  */
 class InvalidClassException extends ProtocolException
 {
-
     public function __construct(private int $classId)
     {
         parent::__construct(sprintf('Unhandled method frame class \'%d\'', $this->classId));
@@ -23,5 +22,4 @@ class InvalidClassException extends ProtocolException
     {
         return $this->classId;
     }
-
 }

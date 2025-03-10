@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -22,10 +22,8 @@ use Bunny\Constants;
  */
 class MethodFrame extends AbstractFrame
 {
-
     public function __construct(public int $classId, public int $methodId)
     {
         parent::__construct(Constants::FRAME_METHOD);
     }
-
 }

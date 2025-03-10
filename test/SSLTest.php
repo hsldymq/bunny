@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Test;
 
@@ -16,7 +16,6 @@ use function time;
 
 class SSLTest extends TestCase
 {
-
     private ClientHelper $helper;
 
     protected function setUp(): void
@@ -132,5 +131,4 @@ class SSLTest extends TestCase
 
         return $options;
     }
-
 }

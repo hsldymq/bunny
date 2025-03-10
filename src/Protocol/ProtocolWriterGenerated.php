@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -17,7 +17,6 @@ use function strlen;
  */
 trait ProtocolWriterGenerated
 {
-
     /**
      * Appends AMQP table to buffer.
      *
@@ -298,5 +297,4 @@ trait ProtocolWriterGenerated
             throw new ProtocolException(sprintf('Unhandled method frame %s.', $frame::class));
         }
     }
-
 }

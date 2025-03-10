@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -13,7 +13,6 @@ use function array_key_exists;
  */
 final class Message
 {
-
     /**
      * @param array<string, mixed> $headers
      */
@@ -47,5 +46,4 @@ final class Message
     {
         return array_key_exists($name, $this->headers);
     }
-
 }

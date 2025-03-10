@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -13,7 +13,6 @@ namespace Bunny;
  */
 trait ChannelMethods
 {
-
     /**
      * Returns underlying client instance.
      */
@@ -223,5 +222,4 @@ trait ChannelMethods
     {
         return $this->getClient()->confirmSelect($this->getChannelId(), $nowait);
     }
-
 }

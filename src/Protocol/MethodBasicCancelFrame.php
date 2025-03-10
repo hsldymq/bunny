@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodBasicCancelFrame extends MethodFrame
 {
-
     public string $consumerTag;
 
     public bool $nowait = false;
@@ -24,5 +23,4 @@ class MethodBasicCancelFrame extends MethodFrame
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_CANCEL);
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny;
 
@@ -11,7 +11,6 @@ namespace Bunny;
  */
 enum ChannelState
 {
-
     /**
      * Channel is ready to receive messages.
      */
@@ -41,5 +40,4 @@ enum ChannelState
      * Channel has received channel.close-ok frame.
      */
     case Closed;
-
 }

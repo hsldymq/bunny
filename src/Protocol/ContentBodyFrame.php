@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -16,10 +16,8 @@ use Bunny\Constants;
  */
 class ContentBodyFrame extends AbstractFrame
 {
-
     public function __construct(?int $channel = null, ?int $payloadSize = null, string|Buffer|null $payload = null)
     {
         parent::__construct(Constants::FRAME_BODY, $channel, $payloadSize, $payload);
     }
-
 }

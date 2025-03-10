@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -32,7 +32,6 @@ use const PHP_INT_SIZE;
  */
 class ProtocolWriter
 {
-
     use ProtocolWriterGenerated;
 
     /**
@@ -245,5 +244,4 @@ class ProtocolWriter
             );
         }
     }
-
 }

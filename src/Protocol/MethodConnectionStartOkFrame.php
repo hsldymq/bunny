@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodConnectionStartOkFrame extends MethodFrame
 {
-
     public string $response;
 
     /** @var array<mixed> */
@@ -31,5 +30,4 @@ class MethodConnectionStartOkFrame extends MethodFrame
 
         $this->channel = Constants::CONNECTION_CHANNEL;
     }
-
 }

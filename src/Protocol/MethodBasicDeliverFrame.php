@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodBasicDeliverFrame extends MethodFrame
 {
-
     public string $consumerTag;
 
     public int $deliveryTag;
@@ -30,5 +29,4 @@ class MethodBasicDeliverFrame extends MethodFrame
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_DELIVER);
     }
-
 }

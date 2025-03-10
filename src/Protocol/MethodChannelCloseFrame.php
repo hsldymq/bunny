@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
@@ -15,7 +15,6 @@ use Bunny\Constants;
  */
 class MethodChannelCloseFrame extends MethodFrame
 {
-
     public int $replyCode;
 
     public int $closeClassId;
@@ -28,5 +27,4 @@ class MethodChannelCloseFrame extends MethodFrame
     {
         parent::__construct(Constants::CLASS_CHANNEL, Constants::METHOD_CHANNEL_CLOSE);
     }
-
 }
