@@ -15,22 +15,16 @@ use Bunny\Constants;
  */
 class MethodExchangeDeleteFrame extends MethodFrame
 {
+    public string $exchange;
 
-    /** @var string */
-    public $exchange;
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public bool $ifUnused = false;
 
-    /** @var bool */
-    public $ifUnused = false;
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_EXCHANGE, Constants::METHOD_EXCHANGE_DELETE);
     }
-
 }

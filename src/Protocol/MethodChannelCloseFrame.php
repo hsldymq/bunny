@@ -15,22 +15,16 @@ use Bunny\Constants;
  */
 class MethodChannelCloseFrame extends MethodFrame
 {
+    public int $replyCode;
 
-    /** @var int */
-    public $replyCode;
+    public int $closeClassId;
 
-    /** @var int */
-    public $closeClassId;
+    public int $closeMethodId;
 
-    /** @var int */
-    public $closeMethodId;
-
-    /** @var string */
-    public $replyText = '';
+    public string $replyText = '';
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_CHANNEL, Constants::METHOD_CHANNEL_CLOSE);
     }
-
 }

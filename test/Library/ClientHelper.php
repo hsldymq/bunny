@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Bunny\Test\Library;
 
 use Bunny\Client;
-use React\Promise\Promise;
+use function array_merge;
 
-final class SynchronousClientHelper extends AbstractClientHelper
+final class ClientHelper
 {
     /**
-     * @param array|null $options
-     *
-     * @return Client
+     * @param array<string, mixed>|null $options
      */
     public function createClient(?array $options = null): Client
     {
@@ -22,7 +20,7 @@ final class SynchronousClientHelper extends AbstractClientHelper
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     public function getDefaultOptions(): array
     {

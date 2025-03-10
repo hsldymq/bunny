@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
-use Bunny\Exception\ProtocolException;
 use Bunny\Constants;
+use Bunny\Exception\ProtocolException;
+use DateTime;
+use function chr;
+use function ctype_print;
+use function pow;
+use function sprintf;
 
 /**
  * AMQP protocol reader. This class provides means of transforming data from {@link Buffer} to {@link AbstractFrame}.
@@ -17,7 +22,6 @@ use Bunny\Constants;
  */
 class ProtocolReader
 {
-
     use ProtocolReaderGenerated;
 
     /**
@@ -47,14 +51,13 @@ class ProtocolReader
         $frameEnd = $buffer->consumeUint8();
 
         if ($frameEnd !== Constants::FRAME_END) {
-            throw new ProtocolException(sprintf("Frame end byte invalid - expected 0x%02x, got 0x%02x.", Constants::FRAME_END, $frameEnd));
+            throw new ProtocolException(sprintf('Frame end byte invalid - expected 0x%02x, got 0x%02x.', Constants::FRAME_END, $frameEnd));
         }
 
         $frameBuffer = new Buffer($payload);
 
         if ($type === Constants::FRAME_METHOD) {
             $frame = $this->consumeMethodFrame($frameBuffer);
-
         } elseif ($type === Constants::FRAME_HEADER) {
             // see https://github.com/pika/pika/blob/master/pika/spec.py class BasicProperties
             $frame = new ContentHeaderFrame();
@@ -118,26 +121,22 @@ class ProtocolReader
             if ($flags & ContentHeaderFrame::FLAG_CLUSTER_ID) {
                 $frame->clusterId = $frameBuffer->consume($frameBuffer->consumeUint8());
             }
-
         } elseif ($type === Constants::FRAME_BODY) {
             $frame = new ContentBodyFrame();
             $frame->payload = $frameBuffer->consume($frameBuffer->getLength());
-
         } elseif ($type === Constants::FRAME_HEARTBEAT) {
             $frame = new HeartbeatFrame();
             if (!$frameBuffer->isEmpty()) {
-                throw new ProtocolException("Heartbeat frame must be empty.");
+                throw new ProtocolException('Heartbeat frame must be empty.');
             }
-
         } else {
-            throw new ProtocolException("Unhandled frame type '{$type}'.");
+            throw new ProtocolException(sprintf('Unhandled frame type \'%s\'.', $type));
         }
 
         if (!$frameBuffer->isEmpty()) {
-            throw new ProtocolException("Frame buffer not entirely consumed.");
+            throw new ProtocolException('Frame buffer not entirely consumed.');
         }
 
-        /** @var AbstractFrame $frame */
         $frame->type = $type;
         $frame->channel = $channel;
         $frame->payloadSize = $payloadSize;
@@ -150,7 +149,7 @@ class ProtocolReader
     /**
      * Consumes AMQP table from buffer.
      *
-     * @return array<string, string|int|\DateTime>
+     * @return array<string,mixed>
      */
     public function consumeTable(Buffer $originalBuffer): array
     {
@@ -167,7 +166,7 @@ class ProtocolReader
     /**
      * Consumes AMQP array from buffer.
      *
-     * @return array<mixed>
+     * @return list<mixed>
      */
     public function consumeArray(Buffer $originalBuffer): array
     {
@@ -176,16 +175,18 @@ class ProtocolReader
         while (!$buffer->isEmpty()) {
             $data[] = $this->consumeFieldValue($buffer);
         }
+
         return $data;
     }
 
     /**
      * Consumes AMQP timestamp from buffer.
      */
-    public function consumeTimestamp(Buffer $buffer): \DateTime
+    public function consumeTimestamp(Buffer $buffer): DateTime
     {
-        $d = new \DateTime();
+        $d = new DateTime();
         $d->setTimestamp($buffer->consumeUint64());
+
         return $d;
     }
 
@@ -201,6 +202,7 @@ class ProtocolReader
         for ($i = 0; $i < $n; ++$i) {
             $bits[] = ($value & (1 << $i)) > 0;
         }
+
         return $bits;
     }
 
@@ -211,6 +213,7 @@ class ProtocolReader
     {
         $scale = $buffer->consumeUint8();
         $value = $buffer->consumeUint32();
+
         return $value * pow(10, $scale);
     }
 
@@ -224,46 +227,63 @@ class ProtocolReader
         switch ($fieldType) {
             case Constants::FIELD_BOOLEAN:
                 return $buffer->consumeUint8() > 0;
+
             case Constants::FIELD_SHORT_SHORT_INT:
                 return $buffer->consumeInt8();
+
             case Constants::FIELD_SHORT_SHORT_UINT:
                 return $buffer->consumeUint8();
+
             case Constants::FIELD_SHORT_INT:
                 return $buffer->consumeInt16();
+
             case Constants::FIELD_SHORT_UINT:
                 return $buffer->consumeUint16();
+
             case Constants::FIELD_LONG_INT:
                 return $buffer->consumeInt32();
+
             case Constants::FIELD_LONG_UINT:
                 return $buffer->consumeUint32();
+
             case Constants::FIELD_LONG_LONG_INT:
                 return $buffer->consumeInt64();
+
             case Constants::FIELD_LONG_LONG_UINT:
                 return $buffer->consumeUint64();
+
             case Constants::FIELD_FLOAT:
                 return $buffer->consumeFloat();
+
             case Constants::FIELD_DOUBLE:
                 return $buffer->consumeDouble();
+
             case Constants::FIELD_DECIMAL_VALUE:
                 return $this->consumeDecimalValue($buffer);
+
             case Constants::FIELD_SHORT_STRING:
                 return $buffer->consume($buffer->consumeUint8());
+
             case Constants::FIELD_LONG_STRING:
                 return $buffer->consume($buffer->consumeUint32());
+
             case Constants::FIELD_ARRAY:
                 return $this->consumeArray($buffer);
+
             case Constants::FIELD_TIMESTAMP:
                 return $this->consumeTimestamp($buffer);
+
             case Constants::FIELD_TABLE:
                 return $this->consumeTable($buffer);
+
             case Constants::FIELD_NULL:
                 return null;
 
             default:
                 throw new ProtocolException(
-                    sprintf("Unhandled field type 0x%02x", $fieldType) .
-                    (ctype_print(chr($fieldType)) ? " ('" . chr($fieldType) . "')" : "") .
-                    "."
+                    sprintf('Unhandled field type 0x%02x', $fieldType) .
+                    (ctype_print(chr($fieldType)) ? " ('" . chr($fieldType) . "')" : '') .
+                    '.',
                 );
         }
     }

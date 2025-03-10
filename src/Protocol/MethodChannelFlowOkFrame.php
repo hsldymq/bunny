@@ -15,13 +15,10 @@ use Bunny\Constants;
  */
 class MethodChannelFlowOkFrame extends MethodFrame
 {
-
-    /** @var bool */
-    public $active;
+    public bool $active;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_CHANNEL, Constants::METHOD_CHANNEL_FLOW_OK);
     }
-
 }

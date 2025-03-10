@@ -15,37 +15,27 @@ use Bunny\Constants;
  */
 class MethodExchangeDeclareFrame extends MethodFrame
 {
+    public string $exchange;
 
-    /** @var string */
-    public $exchange;
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $exchangeType = 'direct';
 
-    /** @var string */
-    public $exchangeType = 'direct';
+    public bool $passive = false;
 
-    /** @var bool */
-    public $passive = false;
+    public bool $durable = false;
 
-    /** @var bool */
-    public $durable = false;
+    public bool $autoDelete = false;
 
-    /** @var bool */
-    public $autoDelete = false;
+    public bool $internal = false;
 
-    /** @var bool */
-    public $internal = false;
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     /** @var array<mixed> */
-    public $arguments = [];
+    public array $arguments = [];
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_EXCHANGE, Constants::METHOD_EXCHANGE_DECLARE);
     }
-
 }

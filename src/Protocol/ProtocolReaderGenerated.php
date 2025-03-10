@@ -17,19 +17,17 @@ use Bunny\Exception\InvalidMethodException;
  */
 trait ProtocolReaderGenerated
 {
-
     /**
      * Consumes AMQP table from buffer.
-     * 
-     * @param Buffer $originalBuffer
-     * @return array
+     *
+     * @return array<string,mixed>
      */
     abstract public function consumeTable(Buffer $originalBuffer): array;
 
     /**
      * Consumes packed bits from buffer.
      *
-     * @return array<mixed>
+     * @return list<mixed>
      */
     abstract public function consumeBits(Buffer $buffer, int $n): array;
 
@@ -75,7 +73,7 @@ trait ProtocolReaderGenerated
                 $frame = new MethodConnectionOpenFrame();
                 $frame->virtualHost = $buffer->consume($buffer->consumeUint8());
                 $frame->capabilities = $buffer->consume($buffer->consumeUint8());
-                list($frame->insist) = $this->consumeBits($buffer, 1);
+                [$frame->insist] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_CONNECTION_OPEN_OK) {
                 $frame = new MethodConnectionOpenOkFrame();
                 $frame->knownHosts = $buffer->consume($buffer->consumeUint8());
@@ -104,10 +102,10 @@ trait ProtocolReaderGenerated
                 $frame->channelId = $buffer->consume($buffer->consumeUint32());
             } elseif ($methodId === Constants::METHOD_CHANNEL_FLOW) {
                 $frame = new MethodChannelFlowFrame();
-                list($frame->active) = $this->consumeBits($buffer, 1);
+                [$frame->active] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_CHANNEL_FLOW_OK) {
                 $frame = new MethodChannelFlowOkFrame();
-                list($frame->active) = $this->consumeBits($buffer, 1);
+                [$frame->active] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_CHANNEL_CLOSE) {
                 $frame = new MethodChannelCloseFrame();
                 $frame->replyCode = $buffer->consumeInt16();
@@ -123,7 +121,7 @@ trait ProtocolReaderGenerated
             if ($methodId === Constants::METHOD_ACCESS_REQUEST) {
                 $frame = new MethodAccessRequestFrame();
                 $frame->realm = $buffer->consume($buffer->consumeUint8());
-                list($frame->exclusive, $frame->passive, $frame->active, $frame->write, $frame->read) = $this->consumeBits($buffer, 5);
+                [$frame->exclusive, $frame->passive, $frame->active, $frame->write, $frame->read] = $this->consumeBits($buffer, 5);
             } elseif ($methodId === Constants::METHOD_ACCESS_REQUEST_OK) {
                 $frame = new MethodAccessRequestOkFrame();
                 $frame->reserved1 = $buffer->consumeInt16();
@@ -136,7 +134,7 @@ trait ProtocolReaderGenerated
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->exchange = $buffer->consume($buffer->consumeUint8());
                 $frame->exchangeType = $buffer->consume($buffer->consumeUint8());
-                list($frame->passive, $frame->durable, $frame->autoDelete, $frame->internal, $frame->nowait) = $this->consumeBits($buffer, 5);
+                [$frame->passive, $frame->durable, $frame->autoDelete, $frame->internal, $frame->nowait] = $this->consumeBits($buffer, 5);
                 $frame->arguments = $this->consumeTable($buffer);
             } elseif ($methodId === Constants::METHOD_EXCHANGE_DECLARE_OK) {
                 $frame = new MethodExchangeDeclareOkFrame();
@@ -144,7 +142,7 @@ trait ProtocolReaderGenerated
                 $frame = new MethodExchangeDeleteFrame();
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->exchange = $buffer->consume($buffer->consumeUint8());
-                list($frame->ifUnused, $frame->nowait) = $this->consumeBits($buffer, 2);
+                [$frame->ifUnused, $frame->nowait] = $this->consumeBits($buffer, 2);
             } elseif ($methodId === Constants::METHOD_EXCHANGE_DELETE_OK) {
                 $frame = new MethodExchangeDeleteOkFrame();
             } elseif ($methodId === Constants::METHOD_EXCHANGE_BIND) {
@@ -153,7 +151,7 @@ trait ProtocolReaderGenerated
                 $frame->destination = $buffer->consume($buffer->consumeUint8());
                 $frame->source = $buffer->consume($buffer->consumeUint8());
                 $frame->routingKey = $buffer->consume($buffer->consumeUint8());
-                list($frame->nowait) = $this->consumeBits($buffer, 1);
+                [$frame->nowait] = $this->consumeBits($buffer, 1);
                 $frame->arguments = $this->consumeTable($buffer);
             } elseif ($methodId === Constants::METHOD_EXCHANGE_BIND_OK) {
                 $frame = new MethodExchangeBindOkFrame();
@@ -163,7 +161,7 @@ trait ProtocolReaderGenerated
                 $frame->destination = $buffer->consume($buffer->consumeUint8());
                 $frame->source = $buffer->consume($buffer->consumeUint8());
                 $frame->routingKey = $buffer->consume($buffer->consumeUint8());
-                list($frame->nowait) = $this->consumeBits($buffer, 1);
+                [$frame->nowait] = $this->consumeBits($buffer, 1);
                 $frame->arguments = $this->consumeTable($buffer);
             } elseif ($methodId === Constants::METHOD_EXCHANGE_UNBIND_OK) {
                 $frame = new MethodExchangeUnbindOkFrame();
@@ -175,7 +173,7 @@ trait ProtocolReaderGenerated
                 $frame = new MethodQueueDeclareFrame();
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->queue = $buffer->consume($buffer->consumeUint8());
-                list($frame->passive, $frame->durable, $frame->exclusive, $frame->autoDelete, $frame->nowait) = $this->consumeBits($buffer, 5);
+                [$frame->passive, $frame->durable, $frame->exclusive, $frame->autoDelete, $frame->nowait] = $this->consumeBits($buffer, 5);
                 $frame->arguments = $this->consumeTable($buffer);
             } elseif ($methodId === Constants::METHOD_QUEUE_DECLARE_OK) {
                 $frame = new MethodQueueDeclareOkFrame();
@@ -188,7 +186,7 @@ trait ProtocolReaderGenerated
                 $frame->queue = $buffer->consume($buffer->consumeUint8());
                 $frame->exchange = $buffer->consume($buffer->consumeUint8());
                 $frame->routingKey = $buffer->consume($buffer->consumeUint8());
-                list($frame->nowait) = $this->consumeBits($buffer, 1);
+                [$frame->nowait] = $this->consumeBits($buffer, 1);
                 $frame->arguments = $this->consumeTable($buffer);
             } elseif ($methodId === Constants::METHOD_QUEUE_BIND_OK) {
                 $frame = new MethodQueueBindOkFrame();
@@ -196,7 +194,7 @@ trait ProtocolReaderGenerated
                 $frame = new MethodQueuePurgeFrame();
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->queue = $buffer->consume($buffer->consumeUint8());
-                list($frame->nowait) = $this->consumeBits($buffer, 1);
+                [$frame->nowait] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_QUEUE_PURGE_OK) {
                 $frame = new MethodQueuePurgeOkFrame();
                 $frame->messageCount = $buffer->consumeInt32();
@@ -204,7 +202,7 @@ trait ProtocolReaderGenerated
                 $frame = new MethodQueueDeleteFrame();
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->queue = $buffer->consume($buffer->consumeUint8());
-                list($frame->ifUnused, $frame->ifEmpty, $frame->nowait) = $this->consumeBits($buffer, 3);
+                [$frame->ifUnused, $frame->ifEmpty, $frame->nowait] = $this->consumeBits($buffer, 3);
             } elseif ($methodId === Constants::METHOD_QUEUE_DELETE_OK) {
                 $frame = new MethodQueueDeleteOkFrame();
                 $frame->messageCount = $buffer->consumeInt32();
@@ -225,7 +223,7 @@ trait ProtocolReaderGenerated
                 $frame = new MethodBasicQosFrame();
                 $frame->prefetchSize = $buffer->consumeInt32();
                 $frame->prefetchCount = $buffer->consumeInt16();
-                list($frame->global) = $this->consumeBits($buffer, 1);
+                [$frame->global] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_BASIC_QOS_OK) {
                 $frame = new MethodBasicQosOkFrame();
             } elseif ($methodId === Constants::METHOD_BASIC_CONSUME) {
@@ -233,7 +231,7 @@ trait ProtocolReaderGenerated
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->queue = $buffer->consume($buffer->consumeUint8());
                 $frame->consumerTag = $buffer->consume($buffer->consumeUint8());
-                list($frame->noLocal, $frame->noAck, $frame->exclusive, $frame->nowait) = $this->consumeBits($buffer, 4);
+                [$frame->noLocal, $frame->noAck, $frame->exclusive, $frame->nowait] = $this->consumeBits($buffer, 4);
                 $frame->arguments = $this->consumeTable($buffer);
             } elseif ($methodId === Constants::METHOD_BASIC_CONSUME_OK) {
                 $frame = new MethodBasicConsumeOkFrame();
@@ -241,7 +239,7 @@ trait ProtocolReaderGenerated
             } elseif ($methodId === Constants::METHOD_BASIC_CANCEL) {
                 $frame = new MethodBasicCancelFrame();
                 $frame->consumerTag = $buffer->consume($buffer->consumeUint8());
-                list($frame->nowait) = $this->consumeBits($buffer, 1);
+                [$frame->nowait] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_BASIC_CANCEL_OK) {
                 $frame = new MethodBasicCancelOkFrame();
                 $frame->consumerTag = $buffer->consume($buffer->consumeUint8());
@@ -250,7 +248,7 @@ trait ProtocolReaderGenerated
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->exchange = $buffer->consume($buffer->consumeUint8());
                 $frame->routingKey = $buffer->consume($buffer->consumeUint8());
-                list($frame->mandatory, $frame->immediate) = $this->consumeBits($buffer, 2);
+                [$frame->mandatory, $frame->immediate] = $this->consumeBits($buffer, 2);
             } elseif ($methodId === Constants::METHOD_BASIC_RETURN) {
                 $frame = new MethodBasicReturnFrame();
                 $frame->replyCode = $buffer->consumeInt16();
@@ -261,18 +259,18 @@ trait ProtocolReaderGenerated
                 $frame = new MethodBasicDeliverFrame();
                 $frame->consumerTag = $buffer->consume($buffer->consumeUint8());
                 $frame->deliveryTag = $buffer->consumeInt64();
-                list($frame->redelivered) = $this->consumeBits($buffer, 1);
+                [$frame->redelivered] = $this->consumeBits($buffer, 1);
                 $frame->exchange = $buffer->consume($buffer->consumeUint8());
                 $frame->routingKey = $buffer->consume($buffer->consumeUint8());
             } elseif ($methodId === Constants::METHOD_BASIC_GET) {
                 $frame = new MethodBasicGetFrame();
                 $frame->reserved1 = $buffer->consumeInt16();
                 $frame->queue = $buffer->consume($buffer->consumeUint8());
-                list($frame->noAck) = $this->consumeBits($buffer, 1);
+                [$frame->noAck] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_BASIC_GET_OK) {
                 $frame = new MethodBasicGetOkFrame();
                 $frame->deliveryTag = $buffer->consumeInt64();
-                list($frame->redelivered) = $this->consumeBits($buffer, 1);
+                [$frame->redelivered] = $this->consumeBits($buffer, 1);
                 $frame->exchange = $buffer->consume($buffer->consumeUint8());
                 $frame->routingKey = $buffer->consume($buffer->consumeUint8());
                 $frame->messageCount = $buffer->consumeInt32();
@@ -282,23 +280,23 @@ trait ProtocolReaderGenerated
             } elseif ($methodId === Constants::METHOD_BASIC_ACK) {
                 $frame = new MethodBasicAckFrame();
                 $frame->deliveryTag = $buffer->consumeInt64();
-                list($frame->multiple) = $this->consumeBits($buffer, 1);
+                [$frame->multiple] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_BASIC_REJECT) {
                 $frame = new MethodBasicRejectFrame();
                 $frame->deliveryTag = $buffer->consumeInt64();
-                list($frame->requeue) = $this->consumeBits($buffer, 1);
+                [$frame->requeue] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_BASIC_RECOVER_ASYNC) {
                 $frame = new MethodBasicRecoverAsyncFrame();
-                list($frame->requeue) = $this->consumeBits($buffer, 1);
+                [$frame->requeue] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_BASIC_RECOVER) {
                 $frame = new MethodBasicRecoverFrame();
-                list($frame->requeue) = $this->consumeBits($buffer, 1);
+                [$frame->requeue] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_BASIC_RECOVER_OK) {
                 $frame = new MethodBasicRecoverOkFrame();
             } elseif ($methodId === Constants::METHOD_BASIC_NACK) {
                 $frame = new MethodBasicNackFrame();
                 $frame->deliveryTag = $buffer->consumeInt64();
-                list($frame->multiple, $frame->requeue) = $this->consumeBits($buffer, 2);
+                [$frame->multiple, $frame->requeue] = $this->consumeBits($buffer, 2);
             } else {
                 throw new InvalidMethodException($classId, $methodId);
             }
@@ -321,7 +319,7 @@ trait ProtocolReaderGenerated
         } elseif ($classId === Constants::CLASS_CONFIRM) {
             if ($methodId === Constants::METHOD_CONFIRM_SELECT) {
                 $frame = new MethodConfirmSelectFrame();
-                list($frame->nowait) = $this->consumeBits($buffer, 1);
+                [$frame->nowait] = $this->consumeBits($buffer, 1);
             } elseif ($methodId === Constants::METHOD_CONFIRM_SELECT_OK) {
                 $frame = new MethodConfirmSelectOkFrame();
             } else {
@@ -336,5 +334,4 @@ trait ProtocolReaderGenerated
 
         return $frame;
     }
-
 }

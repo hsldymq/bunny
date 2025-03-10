@@ -15,25 +15,19 @@ use Bunny\Constants;
  */
 class MethodQueueUnbindFrame extends MethodFrame
 {
+    public string $exchange;
 
-    /** @var string */
-    public $exchange;
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $queue = '';
 
-    /** @var string */
-    public $queue = '';
-
-    /** @var string */
-    public $routingKey = '';
+    public string $routingKey = '';
 
     /** @var array<mixed> */
-    public $arguments = [];
+    public array $arguments = [];
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_QUEUE, Constants::METHOD_QUEUE_UNBIND);
     }
-
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bunny\Exception;
 
+use function sprintf;
+
 /**
  * Peer sent frame with invalid method class id.
  *
@@ -11,22 +13,13 @@ namespace Bunny\Exception;
  */
 class InvalidClassException extends ProtocolException
 {
-
-    /** @var int */
-    private $classId;
-
-    public function __construct($classId)
+    public function __construct(private int $classId)
     {
-        parent::__construct("Unhandled method frame class '{$classId}'.");
-        $this->classId = $classId;
+        parent::__construct(sprintf('Unhandled method frame class \'%d\'', $this->classId));
     }
 
-    /**
-     * @return int
-     */
-    public function getClassId()
+    public function getClassId(): int
     {
         return $this->classId;
     }
-
 }

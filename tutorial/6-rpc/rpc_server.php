@@ -1,17 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 use Bunny\Channel;
 use Bunny\Client;
 use Bunny\Message;
-use React\EventLoop\Loop;
-use function React\Async\async;
 
-function fib($n) {
-    if ($n == 0)
+function fib(int $n): int
+{
+    if ($n === 0) {
         return 0;
-    if ($n == 1)
+    }
+
+    if ($n === 1) {
         return 1;
-    return fib($n-1) + fib($n-2);
+    }
+
+    return fib($n - 1) + fib($n - 2);
 }
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
@@ -21,21 +26,21 @@ $channel = $client->channel();
 
 $channel->queueDeclare('rpc_queue');
 
-echo " [x] Awaiting RPC requests\n";
+echo ' [x] Awaiting RPC requests' . PHP_EOL;
 
 $channel->consume(
-    function (Message $message, Channel $channel, Client $client) {
+    static function (Message $message, Channel $channel, Client $client): void {
         $n = intval($message->content);
-        echo " [.] fib(", $n, ")\n";
+        echo ' [.] fib(' . $n . ')' . PHP_EOL;
         $channel->publish(
-            (string)fib($n),
+            (string) fib($n),
             [
                 'correlation_id' => $message->getHeader('correlation_id'),
             ],
             '',
-            $message->getHeader('reply_to')
+            $message->getHeader('reply_to'),
         );
         $channel->ack($message);
     },
-    'rpc_queue'
+    'rpc_queue',
 );

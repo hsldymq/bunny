@@ -4,8 +4,23 @@ declare(strict_types=1);
 
 namespace Bunny\Protocol;
 
-use Bunny\Exception\ProtocolException;
 use Bunny\Constants;
+use Bunny\Exception\ProtocolException;
+use DateTimeInterface;
+use function array_keys;
+use function count;
+use function gettype;
+use function intval;
+use function is_array;
+use function is_bool;
+use function is_float;
+use function is_int;
+use function is_null;
+use function is_object;
+use function is_string;
+use function range;
+use function strlen;
+use const PHP_INT_SIZE;
 
 /**
  * AMQP protocol writer. This class provides means of transforming {@link AbstractFrame}s to their wire format.
@@ -26,13 +41,11 @@ class ProtocolWriter
     {
         if ($frame instanceof MethodFrame && $frame->payload !== null) {
             // payload already supplied
-
         } elseif ($frame instanceof MethodFrame) {
             $frameBuffer = new Buffer();
             $this->appendMethodFrame($frame, $frameBuffer);
             $frame->payloadSize = $frameBuffer->getLength();
             $frame->payload = $frameBuffer;
-
         } elseif ($frame instanceof ContentHeaderFrame) {
             $frameBuffer = new Buffer();
             // see https://github.com/pika/pika/blob/master/pika/spec.py class BasicProperties
@@ -112,15 +125,12 @@ class ProtocolWriter
 
             $frame->payloadSize = $frameBuffer->getLength();
             $frame->payload = $frameBuffer;
-
         } elseif ($frame instanceof ContentBodyFrame) {
             // body frame's payload is already loaded
-
         } elseif ($frame instanceof HeartbeatFrame) {
             // heartbeat frame is empty
-
         } else {
-            throw new ProtocolException("Unhandled frame '" . get_class($frame) . "'.");
+            throw new ProtocolException("Unhandled frame '" . $frame::class . "'.");
         }
 
         $buffer->appendUint8($frame->type);
@@ -133,7 +143,7 @@ class ProtocolWriter
     /**
      * Appends AMQP table to buffer.
      *
-     * @param array<mixed> $table
+     * @param array<string,mixed> $table
      */
     public function appendTable(array $table, Buffer $originalBuffer): void
     {
@@ -169,7 +179,7 @@ class ProtocolWriter
     /**
      * Appends AMQP timestamp to buffer.
      */
-    public function appendTimestamp(\DateTimeInterface $value, Buffer $buffer): void
+    public function appendTimestamp(DateTimeInterface $value, Buffer $buffer): void
     {
         $buffer->appendUint64($value->getTimestamp());
     }
@@ -186,6 +196,7 @@ class ProtocolWriter
             $bit = $bit ? 1 : 0;
             $value |= $bit << $n;
         }
+
         $buffer->appendUint8($value);
     }
 
@@ -198,24 +209,20 @@ class ProtocolWriter
             $buffer->appendUint8(Constants::FIELD_LONG_STRING);
             $buffer->appendUint32(strlen($value));
             $buffer->append($value);
-
         } elseif (is_int($value)) {
-           if (PHP_INT_SIZE === 4) {
-               $buffer->appendUint8(Constants::FIELD_LONG_INT);
-               $buffer->appendInt32($value);
-           } else {
-               $buffer->appendUint8(Constants::FIELD_LONG_LONG_INT);
-               $buffer->appendInt64($value);
-           }
-
+            if (PHP_INT_SIZE === 4) {
+                $buffer->appendUint8(Constants::FIELD_LONG_INT);
+                $buffer->appendInt32($value);
+            } else {
+                $buffer->appendUint8(Constants::FIELD_LONG_LONG_INT);
+                $buffer->appendInt64($value);
+            }
         } elseif (is_bool($value)) {
             $buffer->appendUint8(Constants::FIELD_BOOLEAN);
             $buffer->appendUint8(intval($value));
-
         } elseif (is_float($value)) {
             $buffer->appendUint8(Constants::FIELD_DOUBLE);
             $buffer->appendDouble($value);
-
         } elseif (is_array($value)) {
             if (array_keys($value) === range(0, count($value) - 1)) { // sequential array
                 $buffer->appendUint8(Constants::FIELD_ARRAY);
@@ -224,21 +231,17 @@ class ProtocolWriter
                 $buffer->appendUint8(Constants::FIELD_TABLE);
                 $this->appendTable($value, $buffer);
             }
-
         } elseif (is_null($value)) {
             $buffer->appendUint8(Constants::FIELD_NULL);
-
-        } elseif ($value instanceof \DateTimeInterface) {
+        } elseif ($value instanceof DateTimeInterface) {
             $buffer->appendUint8(Constants::FIELD_TIMESTAMP);
             $this->appendTimestamp($value, $buffer);
-
         } else {
             throw new ProtocolException(
                 "Unhandled value type '" . gettype($value) . "' " .
-                (is_object($value) ? "(class " . get_class($value) . ")" : "") .
-                "."
+                (is_object($value) ? '(class ' . $value::class . ')' : '') .
+                '.',
             );
         }
     }
-
 }

@@ -21,34 +21,14 @@ namespace Bunny\Protocol;
  *      uint8    uint16      uint32        size octets       uint8
  *
  * @author Jakub Kulhan <jakub.kulhan@gmail.com>
- * @phpstan-consistent-constructor
  */
 abstract class AbstractFrame
 {
-
-    /** @var int */
-    public $type;
-
-    /** @var int */
-    public $channel;
-
-    /** @var int */
-    public $payloadSize;
-
-    /** @var string|Buffer */
-    public $payload;
-
-    public static function create()
-    {
-        return new static();
+    public function __construct(
+        public int $type,
+        public ?int $channel = null,
+        public ?int $payloadSize = null,
+        public string|Buffer|null $payload = null,
+    ) {
     }
-
-    public function __construct($type = null, $channel = null, $payloadSize = null, $payload = null)
-    {
-        $this->type = $type;
-        $this->channel = $channel;
-        $this->payloadSize = $payloadSize;
-        $this->payload = $payload;
-    }
-
 }

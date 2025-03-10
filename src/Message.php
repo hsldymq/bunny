@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bunny;
 
+use function array_key_exists;
+
 /**
  * Convenience crate for transferring messages through app.
  *
@@ -22,35 +24,26 @@ final class Message
         public string $routingKey,
         public array $headers,
         public string $content,
-    )
-    {
+    ) {
     }
 
     /**
      * Returns header or default value.
-     *
-     * @param string $name
-     * @param mixed $default
-     * @return mixed
      */
     public function getHeader(string $name, mixed $default = null): mixed
     {
         if (array_key_exists($name, $this->headers)) {
             return $this->headers[$name];
-        } else {
-            return $default;
         }
+
+        return $default;
     }
 
     /**
      * Returns TRUE if message has given header.
-     *
-     * @param string $name
-     * @return boolean
      */
     public function hasHeader(string $name): bool
     {
         return array_key_exists($name, $this->headers);
     }
-
 }

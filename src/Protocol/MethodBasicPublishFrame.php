@@ -15,25 +15,18 @@ use Bunny\Constants;
  */
 class MethodBasicPublishFrame extends MethodFrame
 {
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $exchange = '';
 
-    /** @var string */
-    public $exchange = '';
+    public string $routingKey = '';
 
-    /** @var string */
-    public $routingKey = '';
+    public bool $mandatory = false;
 
-    /** @var bool */
-    public $mandatory = false;
-
-    /** @var bool */
-    public $immediate = false;
+    public bool $immediate = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_PUBLISH);
     }
-
 }

@@ -15,10 +15,8 @@ use Bunny\Constants;
  */
 class HeartbeatFrame extends AbstractFrame
 {
-
     public function __construct()
     {
-        parent::__construct(Constants::FRAME_HEARTBEAT, Constants::CONNECTION_CHANNEL, 0, "");
+        parent::__construct(Constants::FRAME_HEARTBEAT, Constants::CONNECTION_CHANNEL, 0, '');
     }
-
 }

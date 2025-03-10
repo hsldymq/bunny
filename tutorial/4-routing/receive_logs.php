@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Bunny\Channel;
 use Bunny\Client;
 use Bunny\Message;
@@ -13,24 +15,24 @@ $channel->exchangeDeclare('direct_logs', 'direct');
 $queue = $channel->queueDeclare('', false, false, true, false);
 
 $severities = array_slice($argv, 1);
-if(empty($severities )) {
-    file_put_contents('php://stderr', "Usage: $argv[0] [info] [warning] [error]\n");
+if (empty($severities)) {
+    file_put_contents('php://stderr', sprintf("Usage: %s [info] [warning] [error]\n", $argv[0]));
     $client->disconnect();
     exit(1);
 }
 
-foreach($severities as $severity) {
+foreach ($severities as $severity) {
     $channel->queueBind('direct_logs', $queue->queue, $severity);
 }
 
-echo ' [*] Waiting for logs. To exit press CTRL+C', "\n";
+echo ' [*] Waiting for logs. To exit press CTRL+C' . PHP_EOL;
 
 $channel->consume(
-    function (Message $message, Channel $channel, Client $client) {
+    static function (Message $message, Channel $channel, Client $client): void {
         echo ' [x] ', $message->routingKey, ':', $message->content, "\n";
     },
     $queue->queue,
     '',
     false,
-    true
+    true,
 );

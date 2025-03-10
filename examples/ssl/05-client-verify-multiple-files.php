@@ -22,4 +22,3 @@ $clientConfig = [
         'passphrase'        => 'passphrase-for-client.key',
     ],
 ];
-

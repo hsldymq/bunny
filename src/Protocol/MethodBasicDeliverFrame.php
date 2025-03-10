@@ -15,25 +15,18 @@ use Bunny\Constants;
  */
 class MethodBasicDeliverFrame extends MethodFrame
 {
+    public string $consumerTag;
 
-    /** @var string */
-    public $consumerTag;
+    public int $deliveryTag;
 
-    /** @var int */
-    public $deliveryTag;
+    public string $exchange;
 
-    /** @var string */
-    public $exchange;
+    public string $routingKey;
 
-    /** @var string */
-    public $routingKey;
-
-    /** @var bool */
-    public $redelivered = false;
+    public bool $redelivered = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_DELIVER);
     }
-
 }

@@ -4,7 +4,18 @@ declare(strict_types=1);
 
 namespace Bunny\Test\Library;
 
-function parseAmqpUri($uri): array
+use RuntimeException;
+use function in_array;
+use function parse_url;
+use function rawurldecode;
+use function sprintf;
+use function strpos;
+use function substr;
+
+/**
+ * @return array<string,mixed>
+ */
+function parseAmqpUri(string $uri): array
 {
     $uriComponents = parse_url($uri);
 
@@ -12,11 +23,11 @@ function parseAmqpUri($uri): array
         !isset($uriComponents['scheme'])
         || !in_array($uriComponents['scheme'], ['amqp', 'amqps'])
     ) {
-        throw new \RuntimeException(
+        throw new RuntimeException(
             sprintf(
                 'URI scheme must be "amqp" or "amqps". URI given: "%s"',
-                $uri
-            )
+                $uri,
+            ),
         );
     }
 
@@ -46,11 +57,11 @@ function parseAmqpUri($uri): array
         }
 
         if (strpos($vhostCandidate, '/') !== false) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf(
                     'An URI path component that is a valid vhost may not contain unescaped "/" characters. URI given: "%s"',
-                    $uri
-                )
+                    $uri,
+                ),
             );
         }
 
@@ -59,7 +70,7 @@ function parseAmqpUri($uri): array
         $options['vhost'] = $vhostCandidate;
     }
 
-    if ($options['vhost'] === '') {
+    if (($options['vhost'] ?? '') === '') {
         $options['vhost'] = '/';
     }
 

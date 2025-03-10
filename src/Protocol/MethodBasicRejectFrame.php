@@ -15,16 +15,12 @@ use Bunny\Constants;
  */
 class MethodBasicRejectFrame extends MethodFrame
 {
+    public int $deliveryTag;
 
-    /** @var int */
-    public $deliveryTag;
-
-    /** @var bool */
-    public $requeue = true;
+    public bool $requeue = true;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_REJECT);
     }
-
 }

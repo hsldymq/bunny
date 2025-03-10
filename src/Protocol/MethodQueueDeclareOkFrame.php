@@ -15,19 +15,14 @@ use Bunny\Constants;
  */
 class MethodQueueDeclareOkFrame extends MethodFrame
 {
+    public string $queue;
 
-    /** @var string */
-    public $queue;
+    public int $messageCount;
 
-    /** @var int */
-    public $messageCount;
-
-    /** @var int */
-    public $consumerCount;
+    public int $consumerCount;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_QUEUE, Constants::METHOD_QUEUE_DECLARE_OK);
     }
-
 }

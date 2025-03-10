@@ -11,7 +11,6 @@ namespace Bunny;
  */
 enum ChannelMode
 {
-
     /**
      * Regular AMQP guarantees of published messages delivery.
      */

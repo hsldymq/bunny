@@ -15,19 +15,14 @@ use Bunny\Constants;
  */
 class MethodBasicGetFrame extends MethodFrame
 {
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $queue = '';
 
-    /** @var string */
-    public $queue = '';
-
-    /** @var bool */
-    public $noAck = false;
+    public bool $noAck = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_GET);
     }
-
 }

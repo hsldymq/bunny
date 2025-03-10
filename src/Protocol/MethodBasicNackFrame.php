@@ -15,19 +15,14 @@ use Bunny\Constants;
  */
 class MethodBasicNackFrame extends MethodFrame
 {
+    public int $deliveryTag = 0;
 
-    /** @var int */
-    public $deliveryTag = 0;
+    public bool $multiple = false;
 
-    /** @var bool */
-    public $multiple = false;
-
-    /** @var bool */
-    public $requeue = true;
+    public bool $requeue = true;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_NACK);
     }
-
 }

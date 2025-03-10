@@ -11,7 +11,6 @@ namespace Bunny;
  */
 enum ClientState
 {
-
     /**
      * Client is not connected. Method connect() hasn't been called yet.
      */
@@ -36,5 +35,4 @@ enum ClientState
      * An error has occurred.
      */
     case Error;
-
 }

@@ -15,13 +15,10 @@ use Bunny\Constants;
  */
 class MethodConfirmSelectFrame extends MethodFrame
 {
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_CONFIRM, Constants::METHOD_CONFIRM_SELECT);
     }
-
 }

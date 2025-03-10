@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Bunny;
 
+use function array_key_exists;
+
 final class Channels
 {
     /**
-     * @var array<int, Channel>
+     * @var array<int, \Bunny\Channel>
      */
     private array $channels = [];
 
@@ -31,9 +33,8 @@ final class Channels
         unset($this->channels[$channelid]);
     }
 
-
     /**
-     * @return iterable<int, Channel>
+     * @return iterable<int, \Bunny\Channel>
      */
     public function all(): iterable
     {

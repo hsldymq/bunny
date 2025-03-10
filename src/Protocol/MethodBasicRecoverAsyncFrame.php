@@ -15,13 +15,10 @@ use Bunny\Constants;
  */
 class MethodBasicRecoverAsyncFrame extends MethodFrame
 {
-
-    /** @var bool */
-    public $requeue = false;
+    public bool $requeue = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_RECOVER_ASYNC);
     }
-
 }

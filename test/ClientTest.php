@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpUnhandledExceptionInspection */
-
 declare(strict_types=1);
 
 namespace Bunny\Test;
@@ -12,9 +10,10 @@ use Bunny\Exception\ClientException;
 use Bunny\Message;
 use Bunny\Protocol\MethodBasicAckFrame;
 use Bunny\Protocol\MethodBasicReturnFrame;
+use Bunny\Test\Library\ClientHelper;
 use Bunny\Test\Library\Environment;
 use Bunny\Test\Library\Paths;
-use Bunny\Test\Library\SynchronousClientHelper;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use React\ChildProcess\Process;
 use React\EventLoop\Loop;
@@ -23,47 +22,44 @@ use WyriHaximus\React\PHPUnit\RunTestsInFibersTrait;
 use function React\Async\async;
 use function React\Async\await;
 use function React\Promise\Stream\buffer;
+use function React\Promise\Timer\sleep;
+use function implode;
 use const SIGINT;
 
 class ClientTest extends TestCase
 {
     use RunTestsInFibersTrait;
 
-    /**
-     * @var SynchronousClientHelper
-     */
-    private $helper;
+    private ClientHelper $helper;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->helper = new SynchronousClientHelper();
+        $this->helper = new ClientHelper();
     }
 
-    public function testConnect()
+    public function testConnect(): void
     {
         $client = $this->helper->createClient();
 
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
 
         $client->connect();
 
-        $this->assertTrue($client->isConnected());
+        self::assertTrue($client->isConnected());
         $client->disconnect();
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testConnectWithInvalidClientProperties()
+    public function testConnectWithInvalidClientProperties(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
-        $this->helper->createClient([
-            'client_properties' => 'not an array'
-        ]);
+        $this->helper->createClient(['client_properties' => 'not an array']);
     }
 
-    public function testConnectFailure()
+    public function testConnectFailure(): void
     {
         $this->expectException(ClientException::class);
 
@@ -76,7 +72,7 @@ class ClientTest extends TestCase
         $client->connect();
     }
 
-    public function testOpenChannel()
+    public function testOpenChannel(): void
     {
         $client = $this->helper->createClient();
 
@@ -84,30 +80,30 @@ class ClientTest extends TestCase
 
         $channel = $client->channel();
 
-        $this->assertInstanceOf(Channel::class, $channel);
+        self::assertInstanceOf(Channel::class, $channel);
 
-        $this->assertTrue($client->isConnected());
+        self::assertTrue($client->isConnected());
         $client->disconnect();
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testOpenMultipleChannel()
+    public function testOpenMultipleChannel(): void
     {
         $client = $this->helper->createClient();
         $client->connect();
-        $this->assertInstanceOf(Channel::class, $ch1 = $client->channel());
-        $this->assertInstanceOf(Channel::class, $ch2 = $client->channel());
-        $this->assertNotEquals($ch1->getChannelId(), $ch2->getChannelId());
-        $this->assertInstanceOf(Channel::class, $ch3 = $client->channel());
-        $this->assertNotEquals($ch1->getChannelId(), $ch3->getChannelId());
-        $this->assertNotEquals($ch2->getChannelId(), $ch3->getChannelId());
+        self::assertInstanceOf(Channel::class, $ch1 = $client->channel());
+        self::assertInstanceOf(Channel::class, $ch2 = $client->channel());
+        self::assertNotEquals($ch1->getChannelId(), $ch2->getChannelId());
+        self::assertInstanceOf(Channel::class, $ch3 = $client->channel());
+        self::assertNotEquals($ch1->getChannelId(), $ch3->getChannelId());
+        self::assertNotEquals($ch2->getChannelId(), $ch3->getChannelId());
 
-        $this->assertTrue($client->isConnected());
+        self::assertTrue($client->isConnected());
         $client->disconnect();
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testDisconnectWithBufferedMessages()
+    public function testDisconnectWithBufferedMessages(): void
     {
         $client = $this->helper->createClient();
         $client->connect();
@@ -116,38 +112,38 @@ class ClientTest extends TestCase
         $processed = 0;
 
         $channel->qos(0, 1000);
-        $channel->queueDeclare("disconnect_test");
-        $channel->consume(async(function (Message $message, Channel $channel) use ($client, &$processed) {
+        $channel->queueDeclare('disconnect_test');
+        $channel->consume(async(static function (Message $message, Channel $channel) use ($client, &$processed): void {
             $channel->ack($message);
             ++$processed;
             $client->disconnect();
         }));
-        $channel->publish(".", [], "", "disconnect_test");
-        $channel->publish(".", [], "", "disconnect_test");
-        $channel->publish(".", [], "", "disconnect_test");
+        $channel->publish('.', [], '', 'disconnect_test');
+        $channel->publish('.', [], '', 'disconnect_test');
+        $channel->publish('.', [], '', 'disconnect_test');
 
-        await(\React\Promise\Timer\sleep(5));
+        await(sleep(5));
 
-        $this->assertEquals(1, $processed);
-        $this->assertFalse($client->isConnected());
+        self::assertEquals(1, $processed);
+        self::assertFalse($client->isConnected());
 
         // Clean-up Queue
         $client = $this->helper->createClient();
         $channel = $client->channel();
-        $channel->queueDelete("disconnect_test");
+        $channel->queueDelete('disconnect_test');
         $client->disconnect();
     }
 
     /**
      * Spawns an external consumer process, and tries to stop it with SIGINT.
      */
-    public function testStopConsumerWithSigInt()
+    public function testStopConsumerWithSigInt(): void
     {
         $queueName = 'stop-consumer-with-sigint';
 
         $path = Paths::getTestsRootPath() . '/scripts/bunny-consumer.php';
 
-        $process = new Process($path . ' ' . Environment::getTestRabbitMqConnectionUri() . ' ' .$queueName . ' ' . '0');
+        $process = new Process(implode(' ', [$path, Environment::getTestRabbitMqConnectionUri(), $queueName, '0']));
 
         Loop::futureTick(static function () use ($process): void {
             $process->start();
@@ -167,110 +163,108 @@ class ClientTest extends TestCase
         self::assertTrue(await($termination), await(buffer($process->stdout)) . "\n" . await(buffer($process->stderr)));
     }
 
-    public function testGet()
+    public function testGet(): void
     {
         $client = $this->helper->createClient();
         $client->connect();
         $channel = $client->channel();
 
-        $channel->queueDeclare("get_test");
-        $channel->publish(".", [], "", "get_test");
+        $channel->queueDeclare('get_test');
+        $channel->publish('.', [], '', 'get_test');
 
-        $message1 = $channel->get("get_test", true);
-        $this->assertNotNull($message1);
-        $this->assertInstanceOf(Message::class, $message1);
-        $this->assertEquals($message1->exchange, "");
-        $this->assertEquals($message1->content, ".");
+        $message1 = $channel->get('get_test', true);
+        self::assertNotNull($message1);
+        self::assertInstanceOf(Message::class, $message1);
+        self::assertEquals($message1->exchange, '');
+        self::assertEquals($message1->content, '.');
 
-        $message2 = $channel->get("get_test", true);
-        $this->assertNull($message2);
+        $message2 = $channel->get('get_test', true);
+        self::assertNull($message2);
 
-        $channel->publish("..", [], "", "get_test");
+        $channel->publish('..', [], '', 'get_test');
 
-        $channel->get("get_test");
+        $channel->get('get_test');
         $client->disconnect();
 
-        await(\React\Promise\Timer\sleep(5));
+        await(sleep(5));
 
         $client->connect();
 
         $channel  = $client->channel();
-        $message3 = $channel->get("get_test");
-        $this->assertNotNull($message3);
-        $this->assertInstanceOf(Message::class, $message3);
-        $this->assertEquals($message3->exchange, "");
-        $this->assertEquals($message3->content, "..");
+        $message3 = $channel->get('get_test');
+        self::assertNotNull($message3);
+        self::assertInstanceOf(Message::class, $message3);
+        self::assertEquals($message3->exchange, '');
+        self::assertEquals($message3->content, '..');
 
         $channel->ack($message3);
 
         $client->disconnect();
 
-        await(\React\Promise\Timer\sleep(5));
+        await(sleep(5));
 
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testReturn()
+    public function testReturn(): void
     {
         $client = $this->helper->createClient();
         $client->connect();
         $channel = $client->channel();
 
-        /** @var Message $returnedMessage */
         $returnedMessage = null;
-        $channel->addReturnListener(function (
+        $channel->addReturnListener(static function (
             Message $message,
-            MethodBasicReturnFrame $frame
+            MethodBasicReturnFrame $frame,
         ) use (
-            $client,
-            &$returnedMessage
-        ) {
+            &$returnedMessage,
+        ): void {
             $returnedMessage = $message;
         });
 
-        $channel->publish("xxx", [], "", "404", true);
+        $channel->publish('xxx', [], '', '404', true);
 
-        await(\React\Promise\Timer\sleep(1));
+        await(sleep(1));
 
-        $this->assertNotNull($returnedMessage);
-        $this->assertInstanceOf(Message::class, $returnedMessage);
-        $this->assertEquals("xxx", $returnedMessage->content);
-        $this->assertEquals("", $returnedMessage->exchange);
-        $this->assertEquals("404", $returnedMessage->routingKey);
+        self::assertNotNull($returnedMessage);
+        self::assertInstanceOf(Message::class, $returnedMessage);
+        self::assertEquals('xxx', $returnedMessage->content);
+        self::assertEquals('', $returnedMessage->exchange);
+        self::assertEquals('404', $returnedMessage->routingKey);
 
-        $this->assertTrue($client->isConnected());
+        self::assertTrue($client->isConnected());
         $client->disconnect();
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testTxs()
+    public function testTxs(): void
     {
         $client = $this->helper->createClient();
         $client->connect();
         $channel = $client->channel();
 
-        $channel->queueDeclare("tx_test");
+        $channel->queueDeclare('tx_test');
 
         $channel->txSelect();
-        $channel->publish(".", [], "", "tx_test");
+        $channel->publish('.', [], '', 'tx_test');
         $channel->txCommit();
 
-        $message = $channel->get("tx_test", true);
-        $this->assertNotNull($message);
-        $this->assertEquals(".", $message->content);
+        $message = $channel->get('tx_test', true);
+        self::assertNotNull($message);
+        self::assertEquals('.', $message->content);
 
-        $channel->publish("..", [], "", "tx_test");
+        $channel->publish('..', [], '', 'tx_test');
         $channel->txRollback();
 
-        $nothing = $channel->get("tx_test", true);
-        $this->assertNull($nothing);
+        $nothing = $channel->get('tx_test', true);
+        self::assertNull($nothing);
 
-        $this->assertTrue($client->isConnected());
+        self::assertTrue($client->isConnected());
         $client->disconnect();
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testTxSelectCannotBeCalledMultipleTimes()
+    public function testTxSelectCannotBeCalledMultipleTimes(): void
     {
         $this->expectException(ChannelException::class);
 
@@ -281,75 +275,75 @@ class ClientTest extends TestCase
         $channel->txSelect();
         $channel->txSelect();
 
-        $this->assertTrue($client->isConnected());
+        self::assertTrue($client->isConnected());
         $client->disconnect();
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testConfirmMode()
+    public function testConfirmMode(): void
     {
         $client = $this->helper->createClient();
         $client->connect();
         $channel = $client->channel();
 
         $deliveryTag = null;
-        $channel->confirmSelect(async(function (MethodBasicAckFrame $frame) use (&$deliveryTag, $client) {
+        $channel->confirmSelect(async(static function (MethodBasicAckFrame $frame) use (&$deliveryTag, $client): void {
             if ($frame->deliveryTag === $deliveryTag) {
                 $deliveryTag = null;
                 $client->disconnect();
             }
         }));
 
-        $deliveryTag = $channel->publish("tst_cfm_m");
+        $deliveryTag = $channel->publish('tst_cfm_m');
 
-        await(\React\Promise\Timer\sleep(1));
+        await(sleep(1));
 
-        $this->assertNull($deliveryTag);
+        self::assertNull($deliveryTag);
 
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testEmptyMessage()
+    public function testEmptyMessage(): void
     {
         $client = $this->helper->createClient();
         $client->connect();
         $channel = $client->channel();
 
-        $channel->queueDeclare("empty_body_message_test");
+        $channel->queueDeclare('empty_body_message_test');
 
-        $channel->publish("", [], "", "empty_body_message_test");
-        $message = $channel->get("empty_body_message_test", true);
-        $this->assertNotNull($message);
-        $this->assertEquals("", $message->content);
+        $channel->publish('', [], '', 'empty_body_message_test');
+        $message = $channel->get('empty_body_message_test', true);
+        self::assertNotNull($message);
+        self::assertEquals('', $message->content);
 
         $processed = 0;
         $channel->consume(
-            async(function (Message $message, Channel $channel) use ($client, &$processed) {
-                $this->assertEmpty($message->content);
+            async(static function (Message $message, Channel $channel) use ($client, &$processed): void {
+                self::assertEmpty($message->content);
                 $channel->ack($message);
                 if (++$processed === 2) {
                     $client->disconnect();
                 }
             }),
-            "empty_body_message_test"
+            'empty_body_message_test',
         );
 
-        $channel->publish("", [], "", "empty_body_message_test");
-        $channel->publish("", [], "", "empty_body_message_test");
+        $channel->publish('', [], '', 'empty_body_message_test');
+        $channel->publish('', [], '', 'empty_body_message_test');
 
-        await(\React\Promise\Timer\sleep(0.01));
+        await(sleep(0.01));
 
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 
-    public function testHeartBeatCallback()
+    public function testHeartBeatCallback(): void
     {
         $called = 0;
 
         $options = $this->helper->getDefaultOptions();
 
         $options['heartbeat']          = 0.1;
-        $options['heartbeat_callback'] = function () use (&$called) {
+        $options['heartbeat_callback'] = static function () use (&$called): void {
             $called += 1;
         };
 
@@ -357,12 +351,12 @@ class ClientTest extends TestCase
 
         $client->connect();
 
-        await(\React\Promise\Timer\sleep(0.2));
+        await(sleep(0.2));
 
         $client->disconnect();
 
-        $this->assertGreaterThan(0, $called);
+        self::assertGreaterThan(0, $called);
 
-        $this->assertFalse($client->isConnected());
+        self::assertFalse($client->isConnected());
     }
 }

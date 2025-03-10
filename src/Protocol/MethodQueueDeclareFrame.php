@@ -15,34 +15,25 @@ use Bunny\Constants;
  */
 class MethodQueueDeclareFrame extends MethodFrame
 {
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $queue = '';
 
-    /** @var string */
-    public $queue = '';
+    public bool $passive = false;
 
-    /** @var bool */
-    public $passive = false;
+    public bool $durable = false;
 
-    /** @var bool */
-    public $durable = false;
+    public bool $exclusive = false;
 
-    /** @var bool */
-    public $exclusive = false;
+    public bool $autoDelete = false;
 
-    /** @var bool */
-    public $autoDelete = false;
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     /** @var array<mixed> */
-    public $arguments = [];
+    public array $arguments = [];
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_QUEUE, Constants::METHOD_QUEUE_DECLARE);
     }
-
 }

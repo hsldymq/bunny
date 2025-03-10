@@ -15,34 +15,25 @@ use Bunny\Constants;
  */
 class MethodBasicConsumeFrame extends MethodFrame
 {
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $queue = '';
 
-    /** @var string */
-    public $queue = '';
+    public string $consumerTag = '';
 
-    /** @var string */
-    public $consumerTag = '';
+    public bool $noLocal = false;
 
-    /** @var bool */
-    public $noLocal = false;
+    public bool $noAck = false;
 
-    /** @var bool */
-    public $noAck = false;
+    public bool $exclusive = false;
 
-    /** @var bool */
-    public $exclusive = false;
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     /** @var array<mixed> */
-    public $arguments = [];
+    public array $arguments = [];
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_CONSUME);
     }
-
 }

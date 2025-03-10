@@ -15,16 +15,12 @@ use Bunny\Constants;
  */
 class MethodBasicAckFrame extends MethodFrame
 {
+    public int $deliveryTag = 0;
 
-    /** @var int */
-    public $deliveryTag = 0;
-
-    /** @var bool */
-    public $multiple = false;
+    public bool $multiple = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_ACK);
     }
-
 }

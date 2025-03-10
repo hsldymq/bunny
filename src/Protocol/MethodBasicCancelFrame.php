@@ -15,16 +15,12 @@ use Bunny\Constants;
  */
 class MethodBasicCancelFrame extends MethodFrame
 {
+    public string $consumerTag;
 
-    /** @var string */
-    public $consumerTag;
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_CANCEL);
     }
-
 }

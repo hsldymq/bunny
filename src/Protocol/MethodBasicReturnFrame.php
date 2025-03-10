@@ -15,22 +15,16 @@ use Bunny\Constants;
  */
 class MethodBasicReturnFrame extends MethodFrame
 {
+    public int $replyCode;
 
-    /** @var int */
-    public $replyCode;
+    public string $exchange;
 
-    /** @var string */
-    public $exchange;
+    public string $routingKey;
 
-    /** @var string */
-    public $routingKey;
-
-    /** @var string */
-    public $replyText = '';
+    public string $replyText = '';
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_BASIC, Constants::METHOD_BASIC_RETURN);
     }
-
 }

@@ -11,6 +11,7 @@ use Bunny\Protocol\ContentBodyFrame;
 use Bunny\Protocol\ContentHeaderFrame;
 use Bunny\Protocol\HeartbeatFrame;
 use Bunny\Protocol\MethodBasicAckFrame;
+use Bunny\Protocol\MethodBasicCancelOkFrame;
 use Bunny\Protocol\MethodBasicConsumeOkFrame;
 use Bunny\Protocol\MethodBasicDeliverFrame;
 use Bunny\Protocol\MethodBasicGetEmptyFrame;
@@ -19,14 +20,22 @@ use Bunny\Protocol\MethodBasicNackFrame;
 use Bunny\Protocol\MethodBasicReturnFrame;
 use Bunny\Protocol\MethodChannelCloseFrame;
 use Bunny\Protocol\MethodChannelCloseOkFrame;
+use Bunny\Protocol\MethodConfirmSelectOkFrame;
 use Bunny\Protocol\MethodFrame;
+use Bunny\Protocol\MethodTxCommitOkFrame;
+use Bunny\Protocol\MethodTxRollbackOkFrame;
+use Bunny\Protocol\MethodTxSelectOkFrame;
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
+use LogicException;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 use SplQueue;
 use function React\Async\async;
 use function React\Async\await;
+use function array_splice;
+use function gettype;
+use function sprintf;
 
 /**
  * AMQP channel.
@@ -40,7 +49,6 @@ use function React\Async\await;
 class Channel implements ChannelInterface, EventEmitterInterface
 {
     use EventEmitterTrait;
-
     use ChannelMethods {
         ChannelMethods::consume as private consumeImpl;
         ChannelMethods::ack as private ackImpl;
@@ -55,56 +63,44 @@ class Channel implements ChannelInterface, EventEmitterInterface
         ChannelMethods::confirmSelect as private confirmSelectImpl;
     }
 
-    /** @var callable[] */
-    private $returnCallbacks = [];
+    /** @var list<callable(\Bunny\Message, \Bunny\Protocol\MethodBasicReturnFrame): void> */
+    private array $returnCallbacks = [];
 
-    /** @var callable[] */
-    private $deliverCallbacks = [];
+    /** @var array<string,callable(\Bunny\Message, \Bunny\Channel, \Bunny\Client): (\React\Promise\PromiseInterface<mixed>|void)> */
+    private array $deliverCallbacks = [];
 
-    /** @var bool[] */
-    private $deliveryBusy = [];
+    /** @var array<string,bool> */
+    private array $deliveryBusy = [];
 
-    /** @var SplQueue[] */
-    private $deliveryQueue = [];
+    /** @var array<string,\SplQueue<\Bunny\Message>> */
+    private array $deliveryQueue = [];
 
-    /** @var callable[] */
-    private $ackCallbacks = [];
+    /** @var list<callable(\Bunny\Protocol\MethodBasicAckFrame|\Bunny\Protocol\MethodBasicNackFrame): void> */
+    private array $ackCallbacks = [];
 
-    /** @var ?MethodBasicReturnFrame */
-    private $returnFrame;
+    private ?MethodBasicReturnFrame $returnFrame = null;
 
-    /** @var ?MethodBasicDeliverFrame */
-    private $deliverFrame;
+    private ?MethodBasicDeliverFrame $deliverFrame = null;
 
-    /** @var ?MethodBasicGetOkFrame */
-    private $getOkFrame;
+    private ?ContentHeaderFrame $headerFrame = null;
 
-    /** @var ?ContentHeaderFrame */
-    private $headerFrame;
+    private int $bodySizeRemaining;
 
-    /** @var int */
-    private $bodySizeRemaining;
-
-    /** @var Buffer */
-    private $bodyBuffer;
+    private Buffer $bodyBuffer;
 
     private ChannelState $state = ChannelState::Ready;
 
     private ChannelMode $mode = ChannelMode::Regular;
 
-    /** @var Deferred */
-    private $closeDeferred;
+    /** @var \React\Promise\Deferred<int>|null */
+    private ?Deferred $closeDeferred = null;
 
-    /** @var PromiseInterface */
-    private $closePromise;
+    /** @var \React\Promise\PromiseInterface<void>|null */
+    private ?PromiseInterface $closePromise = null;
 
-    /** @var ?Deferred */
-    private $getDeferred;
+    private ?int $deliveryTag = null;
 
-    /** @var int */
-    private $deliveryTag;
-
-    public function __construct(private Connection $connection, private Client $client, readonly public int $channelId)
+    public function __construct(private Connection $connection, private Client $client, public readonly int $channelId)
     {
         $this->bodyBuffer = new Buffer();
     }
@@ -133,27 +129,24 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Listener is called whenever 'basic.return' frame is received with arguments (Message $returnedMessage, MethodBasicReturnFrame $frame)
      *
-     * @param callable $callback
-     * @return $this
+     * @param callable(\Bunny\Message, \Bunny\Protocol\MethodBasicReturnFrame): void $callback
      */
-    public function addReturnListener(callable $callback)
+    public function addReturnListener(callable $callback): self
     {
         $this->removeReturnListener($callback); // remove if previously added to prevent calling multiple times
         $this->returnCallbacks[] = $callback;
+
         return $this;
     }
 
     /**
      * Removes registered return listener. If the callback is not registered, this is noop.
-     *
-     * @param callable $callback
-     * @return $this
      */
-    public function removeReturnListener(callable $callback)
+    public function removeReturnListener(callable $callback): self
     {
         foreach ($this->returnCallbacks as $k => $v) {
             if ($v === $callback) {
-                unset($this->returnCallbacks[$k]);
+                array_splice($this->returnCallbacks, $k, 1);
             }
         }
 
@@ -163,35 +156,32 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Listener is called whenever 'basic.ack' or 'basic.nack' is received.
      *
-     * @param callable $callback
-     * @return $this
+     * @param callable(\Bunny\Protocol\MethodBasicAckFrame|\Bunny\Protocol\MethodBasicNackFrame): void $callback
      */
-    public function addAckListener(callable $callback)
+    public function addAckListener(callable $callback): self
     {
         if ($this->mode !== ChannelMode::Confirm) {
-            throw new ChannelException("Ack/nack listener can be added when channel in confirm mode.");
+            throw new ChannelException('Ack/nack listener can be added when channel in confirm mode.');
         }
 
         $this->removeAckListener($callback);
         $this->ackCallbacks[] = $callback;
+
         return $this;
     }
 
     /**
      * Removes registered ack/nack listener. If the callback is not registered, this is noop.
-     *
-     * @param callable $callback
-     * @return $this
      */
-    public function removeAckListener(callable $callback)
+    public function removeAckListener(callable $callback): self
     {
         if ($this->mode !== ChannelMode::Confirm) {
-            throw new ChannelException("Ack/nack listener can be removed when channel in confirm mode.");
+            throw new ChannelException('Ack/nack listener can be removed when channel in confirm mode.');
         }
 
         foreach ($this->ackCallbacks as $k => $v) {
             if ($v === $callback) {
-                unset($this->ackCallbacks[$k]);
+                array_splice($this->ackCallbacks, $k, 1);
             }
         }
 
@@ -203,14 +193,15 @@ class Channel implements ChannelInterface, EventEmitterInterface
      *
      * Always returns a promise, because there can be outstanding messages to be processed.
      */
-    public function close(int $replyCode = 0, string $replyText = ""): void
+    public function close(int $replyCode = 0, string $replyText = ''): void
     {
         if ($this->state === ChannelState::Closed) {
-            throw new ChannelException("Trying to close already closed channel #{$this->channelId}.");
+            throw new ChannelException(sprintf('Trying to close already closed channel #%d.', $this->channelId));
         }
 
         if ($this->state === ChannelState::Closing) {
             await($this->closePromise);
+
             return;
         }
 
@@ -218,7 +209,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
         $this->connection->channelClose($this->channelId, $replyCode, 0, 0, $replyText);
         $this->closeDeferred = new Deferred();
-        $this->closePromise = $this->closeDeferred->promise()->then(function () {
+        $this->closePromise = $this->closeDeferred->promise()->then(function (): void {
             $this->emit('close');
         });
 
@@ -227,8 +218,10 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     /**
      * Creates new consumer on channel.
+     *
+     * @param array<string,mixed> $arguments
      */
-    public function consume(callable $callback, string $queue = "", string $consumerTag = "", bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = []): MethodBasicConsumeOkFrame
+    public function consume(callable $callback, string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = []): MethodBasicConsumeOkFrame
     {
         $response = $this->consumeImpl($queue, $consumerTag, $noLocal, $noAck, $exclusive, $nowait, $arguments);
 
@@ -236,12 +229,12 @@ class Channel implements ChannelInterface, EventEmitterInterface
             $this->deliverCallbacks[$response->consumerTag] = $callback;
             $this->deliveryQueue[$response->consumerTag] = new SplQueue();
             $this->deliveryBusy[$response->consumerTag] = false;
-            return $response;
 
+            return $response;
         }
 
         throw new ChannelException(
-            "basic.consume unexpected response of type " . gettype($response) . "."
+            'basic.consume unexpected response of type ' . gettype($response) . '.',
         );
     }
 
@@ -272,18 +265,15 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Synchronously returns message if there is any waiting in the queue.
      */
-    public function get(string $queue = "", bool $noAck = false): Message|null
+    public function get(string $queue = '', bool $noAck = false): Message|null
     {
-        if ($this->getDeferred !== null) {
-            throw new ChannelException("Another 'basic.get' already in progress. You should use 'basic.consume' instead of multiple 'basic.get'.");
-        }
-
         $response = $this->getImpl($queue, $noAck);
 
         if ($response instanceof MethodBasicGetEmptyFrame) {
             return null;
+        }
 
-        } elseif ($response instanceof MethodBasicGetOkFrame) {
+        if ($response instanceof MethodBasicGetOkFrame) {
             $this->state = ChannelState::AwaitingHeader;
 
             $headerFrame = $this->connection->awaitContentHeader($this->getChannelId());
@@ -299,7 +289,8 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
                 if ($this->bodySizeRemaining < 0) {
                     $this->state = ChannelState::Error;
-                    $this->connection->disconnect(Constants::STATUS_SYNTAX_ERROR, $errorMessage = "Body overflow, received " . (-$this->bodySizeRemaining) . " more bytes.");
+                    $this->connection->disconnect(Constants::STATUS_SYNTAX_ERROR, $errorMessage = 'Body overflow, received ' . (-$this->bodySizeRemaining) . ' more bytes.');
+
                     throw new ChannelException($errorMessage);
                 }
             }
@@ -313,50 +304,52 @@ class Channel implements ChannelInterface, EventEmitterInterface
                 $response->exchange,
                 $response->routingKey,
                 $this->headerFrame->toArray(),
-                $this->bodyBuffer->consume($this->bodyBuffer->getLength())
+                $this->bodyBuffer->consume($this->bodyBuffer->getLength()),
             );
 
             $this->headerFrame = null;
 
             return $message;
-
-        } else {
-            throw new \LogicException("This statement should never be reached.");
         }
+
+        throw new LogicException('This statement should never be reached.');
     }
 
     /**
      * Published message to given exchange.
+     *
+     * @param array<string,mixed> $headers
      */
-    public function publish($body, array $headers = [], string $exchange = '', string $routingKey = '', bool $mandatory = false, bool $immediate = false): bool|int
+    public function publish(string $body, array $headers = [], string $exchange = '', string $routingKey = '', bool $mandatory = false, bool $immediate = false): bool|int
     {
         $response = $this->publishImpl($body, $headers, $exchange, $routingKey, $mandatory, $immediate);
 
         if ($this->mode === ChannelMode::Confirm) {
             return ++$this->deliveryTag;
-        } else {
-            return $response;
         }
+
+        return $response;
     }
 
     /**
      * Cancels given consumer subscription.
      */
-    public function cancel(string $consumerTag, bool $nowait = false): bool|\Bunny\Protocol\MethodBasicCancelOkFrame
+    public function cancel(string $consumerTag, bool $nowait = false): bool|MethodBasicCancelOkFrame
     {
         $response = $this->cancelImpl($consumerTag, $nowait);
         unset($this->deliverCallbacks[$consumerTag]);
         unset($this->deliveryQueue[$consumerTag]);
+
         return $response;
     }
 
     /**
      * Changes channel to transactional mode. All messages are published to queues only after {@link txCommit()} is called.
      */
-    public function txSelect(): \Bunny\Protocol\MethodTxSelectOkFrame
+    public function txSelect(): MethodTxSelectOkFrame
     {
         if ($this->mode !== ChannelMode::Regular) {
-            throw new ChannelException("Channel not in regular mode, cannot change to transactional mode.");
+            throw new ChannelException('Channel not in regular mode, cannot change to transactional mode.');
         }
 
         $response = $this->txSelectImpl();
@@ -368,7 +361,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Commit transaction.
      */
-    public function txCommit(): \Bunny\Protocol\MethodTxCommitOkFrame
+    public function txCommit(): MethodTxCommitOkFrame
     {
         if ($this->mode !== ChannelMode::Transactional) {
             throw new ChannelException("Channel not in transactional mode, cannot call 'tx.commit'.");
@@ -380,7 +373,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Rollback transaction.
      */
-    public function txRollback(): \Bunny\Protocol\MethodTxRollbackOkFrame
+    public function txRollback(): MethodTxRollbackOkFrame
     {
         if ($this->mode !== ChannelMode::Transactional) {
             throw new ChannelException("Channel not in transactional mode, cannot call 'tx.rollback'.");
@@ -392,10 +385,10 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /**
      * Changes channel to confirm mode. Broker then asynchronously sends 'basic.ack's for published messages.
      */
-    public function confirmSelect(?callable $callback = null, bool $nowait = false): \Bunny\Protocol\MethodConfirmSelectOkFrame
+    public function confirmSelect(?callable $callback = null, bool $nowait = false): bool|MethodConfirmSelectOkFrame
     {
         if ($this->mode !== ChannelMode::Regular) {
-            throw new ChannelException("Channel not in regular mode, cannot change to transactional mode.");
+            throw new ChannelException('Channel not in regular mode, cannot change to transactional mode.');
         }
 
         $response = $this->confirmSelectImpl($nowait);
@@ -416,39 +409,38 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     /**
      * Callback after channel-level frame has been received.
-     *
-     * @param AbstractFrame $frame
      */
     public function onFrameReceived(AbstractFrame $frame): void
     {
         if ($this->state === ChannelState::Error) {
-            throw new ChannelException("Channel in error state.");
+            throw new ChannelException('Channel in error state.');
         }
 
         if ($this->state === ChannelState::Closed) {
-            throw new ChannelException("Received frame #{$frame->type} on closed channel #{$this->channelId}.");
+            throw new ChannelException(sprintf('Received frame #%d on closed channel #%d.', $frame->type, $this->channelId));
         }
 
         if ($frame instanceof MethodFrame) {
             if ($this->state === ChannelState::Closing && !($frame instanceof MethodChannelCloseOkFrame)) {
                 // drop frames in closing state
                 return;
+            }
 
-            } elseif ($this->state !== ChannelState::Ready && !($frame instanceof MethodChannelCloseOkFrame)) {
+            if ($this->state !== ChannelState::Ready && !($frame instanceof MethodChannelCloseOkFrame)) {
                 $currentState = $this->state;
                 $this->state = ChannelState::Error;
 
                 if ($currentState === ChannelState::AwaitingHeader) {
-                    $msg = "Got method frame, expected header frame.";
+                    $msg = 'Got method frame, expected header frame.';
                 } elseif ($currentState === ChannelState::AwaitingBody) {
-                    $msg = "Got method frame, expected body frame.";
+                    $msg = 'Got method frame, expected body frame.';
                 } else {
-                    throw new \LogicException("Unhandled channel state.");
+                    throw new LogicException('Unhandled channel state.');
                 }
 
                 $this->connection->disconnect(Constants::STATUS_UNEXPECTED_FRAME, $msg);
 
-                throw new ChannelException("Unexpected frame: " . $msg);
+                throw new ChannelException('Unexpected frame: ' . $msg);
             }
 
             if ($frame instanceof MethodChannelCloseOkFrame) {
@@ -464,51 +456,46 @@ class Channel implements ChannelInterface, EventEmitterInterface
                 $this->deliverCallbacks = [];
                 $this->deliveryQueue = [];
                 $this->deliveryBusy = [];
-
             } elseif ($frame instanceof MethodBasicReturnFrame) {
                 $this->returnFrame = $frame;
                 $this->state = ChannelState::AwaitingHeader;
-
             } elseif ($frame instanceof MethodBasicDeliverFrame) {
                 $this->deliverFrame = $frame;
                 $this->state = ChannelState::AwaitingHeader;
-
             } elseif ($frame instanceof MethodBasicAckFrame) {
                 foreach ($this->ackCallbacks as $callback) {
                     $callback($frame);
                 }
-
             } elseif ($frame instanceof MethodBasicNackFrame) {
                 foreach ($this->ackCallbacks as $callback) {
                     $callback($frame);
                 }
             } elseif ($frame instanceof MethodChannelCloseFrame) {
-                throw new ChannelException("Channel closed by server: " . $frame->replyText, $frame->replyCode);
-
+                throw new ChannelException('Channel closed by server: ' . $frame->replyText, $frame->replyCode);
             } else {
-                throw new ChannelException("Unhandled method frame " . get_class($frame) . ".");
+                throw new ChannelException('Unhandled method frame ' . $frame::class . '.');
             }
-
         } elseif ($frame instanceof ContentHeaderFrame) {
             if ($this->state === ChannelState::Closing) {
                 // drop frames in closing state
                 return;
+            }
 
-            } elseif ($this->state !== ChannelState::AwaitingHeader) {
+            if ($this->state !== ChannelState::AwaitingHeader) {
                 $currentState = $this->state;
                 $this->state = ChannelState::Error;
 
                 if ($currentState === ChannelState::Ready) {
-                    $msg = "Got header frame, expected method frame.";
+                    $msg = 'Got header frame, expected method frame.';
                 } elseif ($currentState === ChannelState::AwaitingBody) {
-                    $msg = "Got header frame, expected content frame.";
+                    $msg = 'Got header frame, expected content frame.';
                 } else {
-                    throw new \LogicException("Unhandled channel state.");
+                    throw new LogicException('Unhandled channel state.');
                 }
 
                 $this->connection->disconnect(Constants::STATUS_UNEXPECTED_FRAME, $msg);
 
-                throw new ChannelException("Unexpected frame: " . $msg);
+                throw new ChannelException('Unexpected frame: ' . $msg);
             }
 
             $this->headerFrame = $frame;
@@ -520,27 +507,27 @@ class Channel implements ChannelInterface, EventEmitterInterface
                 $this->state = ChannelState::Ready;
                 $this->onBodyComplete();
             }
-
         } elseif ($frame instanceof ContentBodyFrame) {
             if ($this->state === ChannelState::Closing) {
                 // drop frames in closing state
                 return;
+            }
 
-            } elseif ($this->state !== ChannelState::AwaitingBody) {
+            if ($this->state !== ChannelState::AwaitingBody) {
                 $currentState = $this->state;
                 $this->state = ChannelState::Error;
 
                 if ($currentState === ChannelState::Ready) {
-                    $msg = "Got body frame, expected method frame.";
+                    $msg = 'Got body frame, expected method frame.';
                 } elseif ($currentState === ChannelState::AwaitingHeader) {
-                    $msg = "Got body frame, expected header frame.";
+                    $msg = 'Got body frame, expected header frame.';
                 } else {
-                    throw new \LogicException("Unhandled channel state.");
+                    throw new LogicException('Unhandled channel state.');
                 }
 
                 $this->connection->disconnect(Constants::STATUS_UNEXPECTED_FRAME, $msg);
 
-                throw new ChannelException("Unexpected frame: " . $msg);
+                throw new ChannelException('Unexpected frame: ' . $msg);
             }
 
             $this->bodyBuffer->append($frame->payload);
@@ -548,19 +535,17 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
             if ($this->bodySizeRemaining < 0) {
                 $this->state = ChannelState::Error;
-                $this->connection->disconnect(Constants::STATUS_SYNTAX_ERROR, "Body overflow, received " . (-$this->bodySizeRemaining) . " more bytes.");
-
+                $this->connection->disconnect(Constants::STATUS_SYNTAX_ERROR, 'Body overflow, received ' . (-$this->bodySizeRemaining) . ' more bytes.');
             } elseif ($this->bodySizeRemaining === 0) {
                 $this->state = ChannelState::Ready;
                 $this->onBodyComplete();
             }
-
         } elseif ($frame instanceof HeartbeatFrame) {
-            $this->connection->disconnect(Constants::STATUS_UNEXPECTED_FRAME, "Got heartbeat on non-zero channel.");
-            throw new ChannelException("Unexpected heartbeat frame.");
+            $this->connection->disconnect(Constants::STATUS_UNEXPECTED_FRAME, 'Got heartbeat on non-zero channel.');
 
+            throw new ChannelException('Unexpected heartbeat frame.');
         } else {
-            throw new ChannelException("Unhandled frame " . get_class($frame) . ".");
+            throw new ChannelException('Unhandled frame ' . $frame::class . '.');
         }
     }
 
@@ -578,7 +563,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
                 $this->returnFrame->exchange,
                 $this->returnFrame->routingKey,
                 $this->headerFrame->toArray(),
-                $content
+                $content,
             );
 
             foreach ($this->returnCallbacks as $callback) {
@@ -587,7 +572,6 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
             $this->returnFrame = null;
             $this->headerFrame = null;
-
         } elseif ($this->deliverFrame) {
             $content = $this->bodyBuffer->consume($this->bodyBuffer->getLength());
             if (isset($this->deliverCallbacks[$this->deliverFrame->consumerTag])) {
@@ -598,7 +582,7 @@ class Channel implements ChannelInterface, EventEmitterInterface
                     $this->deliverFrame->exchange,
                     $this->deliverFrame->routingKey,
                     $this->headerFrame->toArray(),
-                    $content
+                    $content,
                 );
 
                 $this->deliveryQueue[$this->deliverFrame->consumerTag]->enqueue($message);
@@ -607,34 +591,14 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
             $this->deliverFrame = null;
             $this->headerFrame = null;
-
-        } elseif ($this->getOkFrame) {
-            $content = $this->bodyBuffer->consume($this->bodyBuffer->getLength());
-
-            // deferred has to be first nullified and then resolved, otherwise results in race condition
-            $deferred = $this->getDeferred;
-            $this->getDeferred = null;
-            $deferred->resolve(new Message(
-                null,
-                $this->getOkFrame->deliveryTag,
-                $this->getOkFrame->redelivered,
-                $this->getOkFrame->exchange,
-                $this->getOkFrame->routingKey,
-                $this->headerFrame->toArray(),
-                $content
-            ));
-
-            $this->getOkFrame = null;
-            $this->headerFrame = null;
-
         } else {
-            throw new \LogicException("Either return or deliver frame has to be handled here.");
+            throw new LogicException('Either return or deliver frame has to be handled here.');
         }
     }
 
     private function deliveryTick(string $consumerTag): void
     {
-        if ($this->deliveryBusy[$consumerTag] === true || $this->deliveryQueue[$consumerTag]->isEmpty()) {
+        if ($this->deliveryBusy[$consumerTag] === true || empty($this->deliveryQueue[$consumerTag]) || $this->deliveryQueue[$consumerTag]->isEmpty()) {
             return;
         }
 
@@ -647,13 +611,13 @@ class Channel implements ChannelInterface, EventEmitterInterface
         if (!($outcome instanceof PromiseInterface)) {
             $this->deliveryBusy[$consumerTag] = false;
             $this->deliveryTick($consumerTag);
+
             return;
         }
 
-        $outcome->finally(function () use ($consumerTag) {
+        $outcome->finally(function () use ($consumerTag): void {
             $this->deliveryBusy[$consumerTag] = false;
             $this->deliveryTick($consumerTag);
         });
     }
 }
-

@@ -15,19 +15,14 @@ use Bunny\Constants;
  */
 class MethodQueuePurgeFrame extends MethodFrame
 {
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $queue = '';
 
-    /** @var string */
-    public $queue = '';
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_QUEUE, Constants::METHOD_QUEUE_PURGE);
     }
-
 }

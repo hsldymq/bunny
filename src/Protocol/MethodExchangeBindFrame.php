@@ -15,28 +15,21 @@ use Bunny\Constants;
  */
 class MethodExchangeBindFrame extends MethodFrame
 {
+    public string $destination;
 
-    /** @var string */
-    public $destination;
+    public string $source;
 
-    /** @var string */
-    public $source;
+    public int $reserved1 = 0;
 
-    /** @var int */
-    public $reserved1 = 0;
+    public string $routingKey = '';
 
-    /** @var string */
-    public $routingKey = '';
-
-    /** @var bool */
-    public $nowait = false;
+    public bool $nowait = false;
 
     /** @var array<mixed> */
-    public $arguments = [];
+    public array $arguments = [];
 
     public function __construct()
     {
         parent::__construct(Constants::CLASS_EXCHANGE, Constants::METHOD_EXCHANGE_BIND);
     }
-
 }
