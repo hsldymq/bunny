@@ -232,6 +232,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $clientProperties
+     *
+     * @return false
      */
     public function connectionStartOk(string $response, array $clientProperties = [], string $mechanism = 'PLAIN', string $locale = 'en_US'): bool
     {
@@ -278,6 +280,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function connectionSecureOk(string $response): bool
     {
         $buffer = $this->writeBuffer;
@@ -317,6 +322,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function connectionTuneOk(int $channelMax = 0, int $frameMax = 0, int $heartbeat = 0): bool
     {
         $buffer = $this->writeBuffer;
@@ -414,6 +422,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function connectionCloseOk(): bool
     {
         $buffer = $this->writeBuffer;
@@ -586,6 +597,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function channelFlowOk(int $channel, bool $active): bool
     {
         $buffer = $this->writeBuffer;
@@ -630,6 +644,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function channelClose(int $channel, int $replyCode, int $closeClassId, int $closeMethodId, string $replyText = ''): bool
     {
         $buffer = $this->writeBuffer;
@@ -678,6 +695,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function channelCloseOk(int $channel): bool
     {
         $buffer = $this->writeBuffer;
@@ -769,6 +789,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodExchangeDeclareOkFrame : false)
      */
     public function exchangeDeclare(int $channel, string $exchange, string $exchangeType = 'direct', bool $passive = false, bool $durable = false, bool $autoDelete = false, bool $internal = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeDeclareOkFrame
     {
@@ -825,6 +847,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return ($nowait is false ? Protocol\MethodExchangeDeleteOkFrame : false)
+     */
     public function exchangeDelete(int $channel, string $exchange, bool $ifUnused = false, bool $nowait = false): bool|Protocol\MethodExchangeDeleteOkFrame
     {
         $buffer = $this->writeBuffer;
@@ -878,6 +903,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodExchangeBindOkFrame : false)
      */
     public function exchangeBind(int $channel, string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeBindOkFrame
     {
@@ -938,6 +965,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodExchangeUnbindOkFrame : false)
      */
     public function exchangeUnbind(int $channel, string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeUnbindOkFrame
     {
@@ -998,6 +1027,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodQueueDeclareOkFrame : false)
      */
     public function queueDeclare(int $channel, string $queue = '', bool $passive = false, bool $durable = false, bool $exclusive = false, bool $autoDelete = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodQueueDeclareOkFrame
     {
@@ -1054,6 +1085,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodQueueBindOkFrame : false)
      */
     public function queueBind(int $channel, string $exchange, string $queue = '', string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodQueueBindOkFrame
     {
@@ -1112,6 +1145,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return ($nowait is false ? Protocol\MethodQueuePurgeOkFrame : false)
+     */
     public function queuePurge(int $channel, string $queue = '', bool $nowait = false): bool|Protocol\MethodQueuePurgeOkFrame
     {
         $buffer = $this->writeBuffer;
@@ -1163,6 +1199,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return ($nowait is false ? Protocol\MethodQueueDeleteOkFrame : false)
+     */
     public function queueDelete(int $channel, string $queue = '', bool $ifUnused = false, bool $ifEmpty = false, bool $nowait = false): bool|Protocol\MethodQueueDeleteOkFrame
     {
         $buffer = $this->writeBuffer;
@@ -1317,6 +1356,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodBasicConsumeOkFrame : false)
      */
     public function consume(int $channel, string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodBasicConsumeOkFrame
     {
@@ -1373,6 +1414,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return ($nowait is false ? Protocol\MethodBasicCancelOkFrame : false)
+     */
     public function cancel(int $channel, string $consumerTag, bool $nowait = false): bool|Protocol\MethodBasicCancelOkFrame
     {
         $buffer = $this->writeBuffer;
@@ -1425,6 +1469,8 @@ final class Connection
 
     /**
      * @param array<string,mixed> $headers
+     *
+     * @return false
      */
     public function publish(int $channel, string $body, array $headers = [], string $exchange = '', string $routingKey = '', bool $mandatory = false, bool $immediate = false): bool
     {
@@ -1765,6 +1811,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function ack(int $channel, int $deliveryTag = 0, bool $multiple = false): bool
     {
         $buffer = $this->writeBuffer;
@@ -1810,6 +1859,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function reject(int $channel, int $deliveryTag, bool $requeue = true): bool
     {
         $buffer = $this->writeBuffer;
@@ -1826,6 +1878,9 @@ final class Connection
         return false;
     }
 
+    /**
+     * @return false
+     */
     public function recoverAsync(int $channel, bool $requeue = false): bool
     {
         $buffer = $this->writeBuffer;
@@ -1885,6 +1940,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return false
+     */
     public function nack(int $channel, int $deliveryTag = 0, bool $multiple = false, bool $requeue = true): bool
     {
         $buffer = $this->writeBuffer;
@@ -2059,6 +2117,9 @@ final class Connection
         return await($deferred->promise());
     }
 
+    /**
+     * @return ($nowait is false ? Protocol\MethodConfirmSelectOkFrame : false)
+     */
     public function confirmSelect(int $channel, bool $nowait = false): bool|Protocol\MethodConfirmSelectOkFrame
     {
         $buffer = $this->writeBuffer;

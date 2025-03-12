@@ -34,6 +34,6 @@ parameters:
 			path: test/ClientTest.php
 			count: 1
 		-
-			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with bool\|int will always evaluate to false\.$#'
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with int\|false will always evaluate to false\.$#'
 			path: test/ClientTest.php
 			count: 1
