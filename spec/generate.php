@@ -714,9 +714,27 @@ foreach ($spec->classes as $class) {
         $methodName = dashedToCamel(($class->name !== 'basic' ? $class->name . '-' : "") . $method->name);
 
         if (!isset($method->direction) || $method->direction === 'CS') {
-            if (count($clientArgumentsTypeHint) > 0) {
+
+            if (isset($method->synchronous) && $method->synchronous) {
+                $returnType = "Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "");
+            }
+            if (count($clientArgumentsTypeHint) > 0 || $hasNowait || (!isset($method->synchronous) || !$method->synchronous || $hasNowait)) {
                 $connectionContent .= "    /**\n";
-                $connectionContent .= "     * ".implode("\n     * ", $channelArgumentsTypeHint) . "\n";
+                if (count($clientArgumentsTypeHint) > 0) {
+                    $connectionContent .= "     * " . implode("\n     * ", $channelArgumentsTypeHint) . "\n";
+                }
+                if ($hasNowait) {
+                    if (count($clientArgumentsTypeHint) > 0) {
+                        $connectionContent .= "     *\n";
+                    }
+                    $connectionContent .= "     * @return (\$nowait is false ? $returnType : false)\n";
+                } elseif (!isset($method->synchronous) || !$method->synchronous || $hasNowait) {
+                    if (count($clientArgumentsTypeHint) > 0) {
+                        $connectionContent .= "     *\n";
+                    }
+                    $connectionContent .= "     * @return false\n";
+                }
+
                 $connectionContent .= "     */\n";
             }
             $connectionContent .= "    public function " . lcfirst($methodName) . "(" . implode(", ", $clientArguments) . "): ". ((!isset($method->synchronous) || !$method->synchronous || $hasNowait) ? "bool" : "") . (isset($method->synchronous) && $method->synchronous ? (($hasNowait ? "|" : "") . "Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame")) : "") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "") . "\n";
@@ -953,6 +971,11 @@ foreach ($spec->classes as $class) {
             $class->id !== 30 &&
             (!isset($method->direction) || $method->direction === 'CS')
         ) {
+
+            if (isset($method->synchronous) && $method->synchronous) {
+                $returnType = "Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "");
+            }
+
             $channelMethodsContent .= "    /**\n";
             $channelMethodsContent .= "     * Calls {$class->name}.{$method->name} AMQP method.\n";
             if (count($channelArgumentsTypeHint) > 0) {
@@ -960,6 +983,13 @@ foreach ($spec->classes as $class) {
                 $channelMethodsContent .= "\n     * ";
                 $channelMethodsContent .= implode("\n     * ", $channelArgumentsTypeHint);
                 $channelMethodsContent .= "\n";
+            }
+            if ($hasNowait) {
+                $channelMethodsContent .= "     *\n";
+                $channelMethodsContent .= "     * @return (\$nowait is false ? $returnType : false)\n";
+            } elseif (!isset($method->synchronous) || !$method->synchronous || $hasNowait) {
+                $channelMethodsContent .= "     *\n";
+                $channelMethodsContent .= "     * @return false\n";
             }
             $channelMethodsContent .= "     */\n";
             $channelMethodsContent .= "    public function " . lcfirst($methodName) . "(" . implode(", ", $channelArguments) . "): ". ((!isset($method->synchronous) || !$method->synchronous || $hasNowait) ? "bool" : "") . (isset($method->synchronous) && $method->synchronous ? (($hasNowait ? "|" : "") . "Protocol\\" . dashedToCamel("method-" . $class->name . "-" . $method->name . "-ok-frame")) : "") . ($class->id === 60 && $method->id === 70 ? "|Protocol\\MethodBasicGetEmptyFrame" : "") . "\n";

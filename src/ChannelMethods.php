@@ -27,6 +27,8 @@ trait ChannelMethods
      * Calls exchange.declare AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodExchangeDeclareOkFrame : false)
      */
     public function exchangeDeclare(string $exchange, string $exchangeType = 'direct', bool $passive = false, bool $durable = false, bool $autoDelete = false, bool $internal = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeDeclareOkFrame
     {
@@ -35,6 +37,8 @@ trait ChannelMethods
 
     /**
      * Calls exchange.delete AMQP method.
+     *
+     * @return ($nowait is false ? Protocol\MethodExchangeDeleteOkFrame : false)
      */
     public function exchangeDelete(string $exchange, bool $ifUnused = false, bool $nowait = false): bool|Protocol\MethodExchangeDeleteOkFrame
     {
@@ -45,6 +49,8 @@ trait ChannelMethods
      * Calls exchange.bind AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodExchangeBindOkFrame : false)
      */
     public function exchangeBind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeBindOkFrame
     {
@@ -55,6 +61,8 @@ trait ChannelMethods
      * Calls exchange.unbind AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodExchangeUnbindOkFrame : false)
      */
     public function exchangeUnbind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeUnbindOkFrame
     {
@@ -65,6 +73,8 @@ trait ChannelMethods
      * Calls queue.declare AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodQueueDeclareOkFrame : false)
      */
     public function queueDeclare(string $queue = '', bool $passive = false, bool $durable = false, bool $exclusive = false, bool $autoDelete = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodQueueDeclareOkFrame
     {
@@ -75,6 +85,8 @@ trait ChannelMethods
      * Calls queue.bind AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodQueueBindOkFrame : false)
      */
     public function queueBind(string $exchange, string $queue = '', string $routingKey = '', bool $nowait = false, array $arguments = []): bool|Protocol\MethodQueueBindOkFrame
     {
@@ -83,6 +95,8 @@ trait ChannelMethods
 
     /**
      * Calls queue.purge AMQP method.
+     *
+     * @return ($nowait is false ? Protocol\MethodQueuePurgeOkFrame : false)
      */
     public function queuePurge(string $queue = '', bool $nowait = false): bool|Protocol\MethodQueuePurgeOkFrame
     {
@@ -91,6 +105,8 @@ trait ChannelMethods
 
     /**
      * Calls queue.delete AMQP method.
+     *
+     * @return ($nowait is false ? Protocol\MethodQueueDeleteOkFrame : false)
      */
     public function queueDelete(string $queue = '', bool $ifUnused = false, bool $ifEmpty = false, bool $nowait = false): bool|Protocol\MethodQueueDeleteOkFrame
     {
@@ -119,6 +135,8 @@ trait ChannelMethods
      * Calls basic.consume AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? Protocol\MethodBasicConsumeOkFrame : false)
      */
     public function consume(string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodBasicConsumeOkFrame
     {
@@ -127,6 +145,8 @@ trait ChannelMethods
 
     /**
      * Calls basic.cancel AMQP method.
+     *
+     * @return ($nowait is false ? Protocol\MethodBasicCancelOkFrame : false)
      */
     public function cancel(string $consumerTag, bool $nowait = false): bool|Protocol\MethodBasicCancelOkFrame
     {
@@ -137,6 +157,8 @@ trait ChannelMethods
      * Calls basic.publish AMQP method.
      *
      * @param array<string,mixed> $headers
+     *
+     * @return false
      */
     public function publish(string $body, array $headers = [], string $exchange = '', string $routingKey = '', bool $mandatory = false, bool $immediate = false): bool
     {
@@ -153,6 +175,8 @@ trait ChannelMethods
 
     /**
      * Calls basic.ack AMQP method.
+     *
+     * @return false
      */
     public function ack(int $deliveryTag = 0, bool $multiple = false): bool
     {
@@ -161,6 +185,8 @@ trait ChannelMethods
 
     /**
      * Calls basic.reject AMQP method.
+     *
+     * @return false
      */
     public function reject(int $deliveryTag, bool $requeue = true): bool
     {
@@ -169,6 +195,8 @@ trait ChannelMethods
 
     /**
      * Calls basic.recover-async AMQP method.
+     *
+     * @return false
      */
     public function recoverAsync(bool $requeue = false): bool
     {
@@ -185,6 +213,8 @@ trait ChannelMethods
 
     /**
      * Calls basic.nack AMQP method.
+     *
+     * @return false
      */
     public function nack(int $deliveryTag = 0, bool $multiple = false, bool $requeue = true): bool
     {
@@ -217,6 +247,8 @@ trait ChannelMethods
 
     /**
      * Calls confirm.select AMQP method.
+     *
+     * @return ($nowait is false ? Protocol\MethodConfirmSelectOkFrame : false)
      */
     public function confirmSelect(bool $nowait = false): bool|Protocol\MethodConfirmSelectOkFrame
     {

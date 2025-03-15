@@ -10,6 +10,7 @@ use Bunny\Protocol\MethodBasicQosOkFrame;
 use Bunny\Protocol\MethodBasicRecoverOkFrame;
 use Bunny\Protocol\MethodConfirmSelectOkFrame;
 use Bunny\Protocol\MethodExchangeBindOkFrame;
+use Bunny\Protocol\MethodExchangeDeclareOkFrame;
 use Bunny\Protocol\MethodExchangeDeleteOkFrame;
 use Bunny\Protocol\MethodExchangeUnbindOkFrame;
 use Bunny\Protocol\MethodQueueBindOkFrame;
@@ -81,16 +82,22 @@ interface ChannelInterface
 
     /**
      * Acks given message.
+     *
+     * @return false
      */
     public function ack(Message $message, bool $multiple = false): bool;
 
     /**
      * Nacks given message.
+     *
+     * @return false
      */
     public function nack(Message $message, bool $multiple = false, bool $requeue = true): bool;
 
     /**
      * Rejects given message.
+     *
+     * @return false
      */
     public function reject(Message $message, bool $requeue = true): bool;
 
@@ -103,13 +110,17 @@ interface ChannelInterface
      * Published message to given exchange.
      *
      * @param array<string,mixed> $headers
+     *
+     * @return int|false
      */
-    public function publish(string $body, array $headers = [], string $exchange = '', string $routingKey = '', bool $mandatory = false, bool $immediate = false): bool|int;
+    public function publish(string $body, array $headers = [], string $exchange = '', string $routingKey = '', bool $mandatory = false, bool $immediate = false): int|bool;
 
     /**
      * Cancels given consumer subscription.
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodBasicCancelOkFrame : false)
      */
-    public function cancel(string $consumerTag, bool $nowait = false): bool|MethodBasicCancelOkFrame;
+    public function cancel(string $consumerTag, bool $nowait = false): MethodBasicCancelOkFrame|bool;
 
     /**
      * Changes channel to transactional mode. All messages are published to queues only after {@link txCommit()} is called.
@@ -128,78 +139,98 @@ interface ChannelInterface
 
     /**
      * Changes channel to confirm mode. Broker then asynchronously sends 'basic.ack's for published messages.
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodConfirmSelectOkFrame : false)
      */
-    public function confirmSelect(?callable $callback = null, bool $nowait = false): bool|MethodConfirmSelectOkFrame;
+    public function confirmSelect(?callable $callback = null, bool $nowait = false): MethodConfirmSelectOkFrame|bool;
 
     /**
      * Calls basic.qos AMQP method.
      */
-    public function qos(int $prefetchSize = 0, int $prefetchCount = 0, bool $global = false): bool|MethodBasicQosOkFrame;
+    public function qos(int $prefetchSize = 0, int $prefetchCount = 0, bool $global = false): MethodBasicQosOkFrame;
 
     /**
      * Calls queue.declare AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodQueueDeclareOkFrame : false)
      */
-    public function queueDeclare(string $queue = '', bool $passive = false, bool $durable = false, bool $exclusive = false, bool $autoDelete = false, bool $nowait = false, array $arguments = []): bool|MethodQueueDeclareOkFrame;
+    public function queueDeclare(string $queue = '', bool $passive = false, bool $durable = false, bool $exclusive = false, bool $autoDelete = false, bool $nowait = false, array $arguments = []): MethodQueueDeclareOkFrame|bool;
 
     /**
      * Calls queue.bind AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodQueueBindOkFrame : false)
      */
-    public function queueBind(string $exchange, string $queue = '', string $routingKey = '', bool $nowait = false, array $arguments = []): bool|MethodQueueBindOkFrame;
+    public function queueBind(string $exchange, string $queue = '', string $routingKey = '', bool $nowait = false, array $arguments = []): MethodQueueBindOkFrame|bool;
 
     /**
      * Calls queue.purge AMQP method.
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodQueuePurgeOkFrame : false)
      */
-    public function queuePurge(string $queue = '', bool $nowait = false): bool|MethodQueuePurgeOkFrame;
+    public function queuePurge(string $queue = '', bool $nowait = false): MethodQueuePurgeOkFrame|bool;
 
     /**
      * Calls queue.delete AMQP method.
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodQueueDeleteOkFrame : false)
      */
-    public function queueDelete(string $queue = '', bool $ifUnused = false, bool $ifEmpty = false, bool $nowait = false): bool|MethodQueueDeleteOkFrame;
+    public function queueDelete(string $queue = '', bool $ifUnused = false, bool $ifEmpty = false, bool $nowait = false): MethodQueueDeleteOkFrame|bool;
 
     /**
      * Calls queue.unbind AMQP method.
      *
      * @param array<string,mixed> $arguments
      */
-    public function queueUnbind(string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): bool|MethodQueueUnbindOkFrame;
+    public function queueUnbind(string $exchange, string $queue = '', string $routingKey = '', array $arguments = []): MethodQueueUnbindOkFrame;
 
     /**
      * Calls exchange.declare AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodExchangeDeclareOkFrame : false)
      */
-    public function exchangeDeclare(string $exchange, string $exchangeType = 'direct', bool $passive = false, bool $durable = false, bool $autoDelete = false, bool $internal = false, bool $nowait = false, array $arguments = []): bool|Protocol\MethodExchangeDeclareOkFrame;
+    public function exchangeDeclare(string $exchange, string $exchangeType = 'direct', bool $passive = false, bool $durable = false, bool $autoDelete = false, bool $internal = false, bool $nowait = false, array $arguments = []): MethodExchangeDeclareOkFrame|bool;
 
     /**
      * Calls exchange.delete AMQP method.
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodExchangeDeleteOkFrame : false)
      */
-    public function exchangeDelete(string $exchange, bool $ifUnused = false, bool $nowait = false): bool|MethodExchangeDeleteOkFrame;
+    public function exchangeDelete(string $exchange, bool $ifUnused = false, bool $nowait = false): MethodExchangeDeleteOkFrame|bool;
 
     /**
      * Calls exchange.bind AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodExchangeBindOkFrame : false)
      */
-    public function exchangeBind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|MethodExchangeBindOkFrame;
+    public function exchangeBind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): MethodExchangeBindOkFrame|bool;
 
     /**
      * Calls exchange.unbind AMQP method.
      *
      * @param array<string,mixed> $arguments
+     *
+     * @return ($nowait is false ? \Bunny\Protocol\MethodExchangeUnbindOkFrame : false)
      */
-    public function exchangeUnbind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): bool|MethodExchangeUnbindOkFrame;
+    public function exchangeUnbind(string $destination, string $source, string $routingKey = '', bool $nowait = false, array $arguments = []): MethodExchangeUnbindOkFrame|bool;
 
     /**
      * Calls basic.recover-async AMQP method.
+     *
+     * @return false
      */
     public function recoverAsync(bool $requeue = false): bool;
 
     /**
      * Calls basic.recover AMQP method.
      */
-    public function recover(bool $requeue = false): bool|MethodBasicRecoverOkFrame;
+    public function recover(bool $requeue = false): MethodBasicRecoverOkFrame;
 }
