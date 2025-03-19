@@ -10,6 +10,7 @@ use Bunny\Protocol\MethodConnectionStartFrame;
 use Bunny\Protocol\ProtocolReader;
 use Bunny\Protocol\ProtocolWriter;
 use InvalidArgumentException;
+use React\Promise\Deferred;
 use React\Socket\Connector;
 use Throwable;
 use function React\Async\async;
@@ -62,6 +63,11 @@ class Client implements ClientInterface
     private int $nextChannelId = 1;
 
     private int $channelMax = 0xFFFF;
+
+    /**
+     * @var list<\React\Promise\Deferred<null>>
+     */
+    private array $connectQueue = [];
 
     /**
      * @param array<string, mixed> $options
@@ -150,6 +156,10 @@ class Client implements ClientInterface
             $this->connect();
         }
 
+        if ($this->state === ClientState::Connecting) {
+            $this->awaitConnection();
+        }
+
         $channelId = $this->findChannelId();
 
         $channel = new Channel($this->connection, $this, $channelId);
@@ -209,10 +219,38 @@ class Client implements ClientInterface
 
             $this->state = ClientState::Connected;
         } catch (Throwable $thrown) {
-            throw new ClientException('Could not connect to ' . $uri . ': ' . $thrown->getMessage(), $thrown->getCode(), $thrown);
+            $exception = new ClientException('Could not connect to ' . $uri . ': ' . $thrown->getMessage(), $thrown->getCode(), $thrown);
+
+            $this->resolveConnectQueue($exception);
+
+            throw $exception;
         }
 
+        $this->resolveConnectQueue();
+
         return $this;
+    }
+
+    private function awaitConnection(): void
+    {
+        $deferred = new Deferred();
+
+        $this->connectQueue[] = $deferred;
+
+        await($deferred->promise());
+    }
+
+    private function resolveConnectQueue(?Throwable $exception = null): void
+    {
+        foreach ($this->connectQueue as $channelPromise) {
+            if ($exception !== null) {
+                $channelPromise->reject($exception);
+            } else {
+                $channelPromise->resolve(null);
+            }
+        }
+
+        $this->connectQueue = [];
     }
 
     /**
