@@ -23,6 +23,9 @@ use function React\Async\async;
 use function React\Async\await;
 use function React\Promise\Stream\buffer;
 use function React\Promise\Timer\sleep;
+use function React\Promise\all;
+use function array_unique;
+use function count;
 use function implode;
 use const SIGINT;
 
@@ -97,6 +100,34 @@ class ClientTest extends TestCase
         self::assertInstanceOf(Channel::class, $ch3 = $client->channel());
         self::assertNotEquals($ch1->getChannelId(), $ch3->getChannelId());
         self::assertNotEquals($ch2->getChannelId(), $ch3->getChannelId());
+
+        self::assertTrue($client->isConnected());
+        $client->disconnect();
+        self::assertFalse($client->isConnected());
+    }
+
+    public function testOpenMultipleChannelAsync(): void
+    {
+        $client = $this->helper->createClient();
+
+        self::assertFalse($client->isConnected());
+
+        $tasks = [];
+        for ($i = 0; $i < 5; $i++) {
+            $tasks[] = async(static fn () => $client->channel())();
+        }
+
+        $channels = await(all($tasks));
+
+        self::assertCount(count($tasks), $channels);
+
+        $channelIds = [];
+        foreach ($channels as $ch) {
+            self::assertInstanceOf(Channel::class, $ch);
+            $channelIds[] = $ch->getChannelId();
+        }
+
+        self::assertSame($channelIds, array_unique($channelIds));
 
         self::assertTrue($client->isConnected());
         $client->disconnect();
