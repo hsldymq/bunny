@@ -77,8 +77,9 @@ interface ChannelInterface
      * Creates new consumer on channel.
      *
      * @param array<string,mixed> $arguments
+     * @param positive-int        $concurrency
      */
-    public function consume(callable $callback, string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = []): MethodBasicConsumeOkFrame;
+    public function consume(callable $callback, string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = [], int $concurrency = 1): MethodBasicConsumeOkFrame;
 
     /**
      * Acks given message.
