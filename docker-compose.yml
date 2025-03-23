@@ -1,4 +1,3 @@
-version: '3'
 networks:
   main:
 services:
@@ -30,7 +29,7 @@ services:
       SSL_CLIENT_CERT: "ssl/client.pem"
       SSL_CLIENT_KEY: "ssl/client.key"
       SSL_PEER_NAME: "server.rmq"
-      TEST_RABBITMQ_CONNECTION_URI: "amqp://testuser:testpassword@bunny_rabbit_node_1_1:5672/testvhost"
+      TEST_RABBITMQ_CONNECTION_URI: "amqp://testuser:testpassword@bunny-rabbit_node_1-1:5672/testvhost"
     volumes:
       - .:/opt/bunny
     networks:
