@@ -64,7 +64,7 @@ class Client extends AbstractClient
      * @param LoopInterface $eventLoop
      * @param array $options see {@link AbstractClient} for available options
      */
-    public function __construct(LoopInterface $eventLoop = null, array $options = [])
+    public function __construct(?LoopInterface $eventLoop = null, array $options = [])
     {
         $options["async"] = true;
         parent::__construct($options);

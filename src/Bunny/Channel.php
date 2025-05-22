@@ -523,7 +523,7 @@ class Channel
      * @param bool $nowait
      * @return Protocol\MethodConfirmSelectOkFrame|PromiseInterface
      */
-    public function confirmSelect(callable $callback = null, $nowait = false)
+    public function confirmSelect(?callable $callback = null, $nowait = false)
     {
         if ($this->mode !== ChannelModeEnum::REGULAR) {
             throw new ChannelException("Channel not in regular mode, cannot change to transactional mode.");
@@ -543,7 +543,7 @@ class Channel
         }
     }
 
-    private function enterConfirmMode(callable $callback = null)
+    private function enterConfirmMode(?callable $callback = null)
     {
         $this->mode = ChannelModeEnum::CONFIRM;
         $this->deliveryTag = 0;
