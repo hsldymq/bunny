@@ -49,9 +49,6 @@ final class Connection
     /** @var array<array{filter: (callable(\Bunny\Protocol\AbstractFrame): bool), promise: \React\Promise\Deferred<\Bunny\Protocol\AbstractFrame>}> */
     private array $awaitList = [];
 
-    /**
-     * @param array<string,mixed> $options
-     */
     public function __construct(
         private readonly Client $client,
         private readonly ConnectionInterface $connection,
@@ -60,7 +57,7 @@ final class Connection
         private readonly ProtocolReader $reader,
         private readonly ProtocolWriter $writer,
         private readonly Channels $channels,
-        private readonly array $options = [],
+        private readonly Configuration $configuration,
     ) {
         $this->connection->on('data', function (string $data): void {
             $this->readBuffer->append($data);
@@ -2170,7 +2167,7 @@ final class Connection
 
     public function startHeartbeatTimer(): void
     {
-        $this->heartbeatTimer = Loop::addTimer($this->options['heartbeat'], [$this, 'onHeartbeat']);
+        $this->heartbeatTimer = Loop::addTimer($this->configuration->heartbeat, [$this, 'onHeartbeat']);
         $this->connection->on('drain', [$this, 'onHeartbeat']);
     }
 
@@ -2180,15 +2177,15 @@ final class Connection
     public function onHeartbeat(): void
     {
         $now = microtime(true);
-        $nextHeartbeat = ($this->lastWrite ?: $now) + $this->options['heartbeat'];
+        $nextHeartbeat = ($this->lastWrite ?: $now) + $this->configuration->heartbeat;
 
         if ($now >= $nextHeartbeat) {
             $this->writer->appendFrame(new HeartbeatFrame(), $this->writeBuffer);
             $this->flushWriteBuffer();
 
-            $this->heartbeatTimer = Loop::addTimer($this->options['heartbeat'], [$this, 'onHeartbeat']);
-            if (is_callable($this->options['heartbeat_callback'] ?? null)) {
-                $this->options['heartbeat_callback']($this);
+            $this->heartbeatTimer = Loop::addTimer($this->configuration->heartbeat, [$this, 'onHeartbeat']);
+            if (is_callable($this->configuration->heartbeatCallback)) {
+                ($this->configuration->heartbeatCallback)($this);
             }
         } else {
             $this->heartbeatTimer = Loop::addTimer($nextHeartbeat - $now, [$this, 'onHeartbeat']);
