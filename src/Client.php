@@ -16,6 +16,7 @@ use Throwable;
 use function React\Async\async;
 use function React\Async\await;
 use function React\Promise\all;
+use function count;
 use function is_array;
 use function is_callable;
 use function sprintf;
@@ -45,10 +46,7 @@ use function strpos;
  */
 class Client implements ClientInterface
 {
-    /**
-     * @var array<string, mixed>
-     */
-    private readonly array $options;
+    private readonly Configuration $configuration;
 
     private readonly Connector $connector;
 
@@ -70,76 +68,94 @@ class Client implements ClientInterface
     private array $connectQueue = [];
 
     /**
-     * @param array<string, mixed> $options
+     * @param Configuration|array<string, mixed> $configuration
      */
-    public function __construct(array $options = [])
+    public function __construct(Configuration|array $configuration = [])
     {
-        if (!isset($options['host'])) {
-            $options['host'] = '127.0.0.1';
-        }
-
-        if (!isset($options['port'])) {
-            $options['port'] = 5672;
-        }
-
-        if (!isset($options['vhost'])) {
-            if (isset($options['virtual_host'])) {
-                $options['vhost'] = $options['virtual_host'];
-                unset($options['virtual_host']);
-            } elseif (isset($options['path'])) {
-                $options['vhost'] = $options['path'];
-                unset($options['path']);
-            } else {
-                $options['vhost'] = '/';
+        if (is_array($configuration)) {
+            if (!isset($configuration['host'])) {
+                $configuration['host'] = Defaults::HOST;
             }
-        }
 
-        if (!isset($options['user'])) {
-            if (isset($options['username'])) {
-                $options['user'] = $options['username'];
-                unset($options['username']);
-            } else {
-                $options['user'] = 'guest';
+            if (!isset($configuration['port'])) {
+                $configuration['port'] = Defaults::PORT;
             }
-        }
 
-        if (!isset($options['password'])) {
-            if (isset($options['pass'])) {
-                $options['password'] = $options['pass'];
-                unset($options['pass']);
-            } else {
-                $options['password'] = 'guest';
+            if (!isset($configuration['vhost'])) {
+                if (isset($configuration['virtual_host'])) {
+                    $configuration['vhost'] = $configuration['virtual_host'];
+                    unset($configuration['virtual_host']);
+                } elseif (isset($configuration['path'])) {
+                    $configuration['vhost'] = $configuration['path'];
+                    unset($configuration['path']);
+                } else {
+                    $configuration['vhost'] = Defaults::VHOST;
+                }
             }
+
+            if (!isset($configuration['user'])) {
+                if (isset($configuration['username'])) {
+                    $configuration['user'] = $configuration['username'];
+                    unset($configuration['username']);
+                } else {
+                    $configuration['user'] = Defaults::USER;
+                }
+            }
+
+            if (!isset($configuration['password'])) {
+                if (isset($configuration['pass'])) {
+                    $configuration['password'] = $configuration['pass'];
+                    unset($configuration['pass']);
+                } else {
+                    $configuration['password'] = Defaults::PASSWORD;
+                }
+            }
+
+            if (!isset($configuration['timeout'])) {
+                $configuration['timeout'] = Defaults::TIMEOUT;
+            }
+
+            if (!isset($configuration['heartbeat'])) {
+                $configuration['heartbeat'] = Defaults::HEARTBEAT;
+            } elseif ($configuration['heartbeat'] >= 2 ** 15) {
+                throw new InvalidArgumentException('Heartbeat too high: the value is a signed int16.');
+            }
+
+            if (!is_callable($configuration['heartbeat_callback'] ?? null)) {
+                unset($configuration['heartbeat_callback']);
+            }
+
+            if (isset($configuration['ssl']) && is_array($configuration['ssl'])) {
+                $configuration['tls'] = $configuration['ssl'];
+            }
+
+            if (!isset($configuration['client_properties'])) {
+                $configuration['client_properties'] = Defaults::CLIENT_PROPERTIES;
+            }
+
+            if (!is_array($configuration['client_properties'])) {
+                throw new InvalidArgumentException('Client properties must be an array');
+            }
+
+            $configuration = new Configuration(
+                host: $configuration['host'],
+                port: $configuration['port'],
+                vhost: $configuration['vhost'],
+                user: $configuration['user'],
+                password: $configuration['password'],
+                timeout: $configuration['timeout'],
+                heartbeat: $configuration['heartbeat'],
+                heartbeatCallback: $configuration['heartbeat_callback'] ?? null,
+                tls: $configuration['tls'] ?? Defaults::TLS,
+                clientProperties: $configuration['client_properties'],
+            );
         }
 
-        if (!isset($options['timeout'])) {
-            $options['timeout'] = 1;
-        }
-
-        if (!isset($options['heartbeat'])) {
-            $options['heartbeat'] = 60.0;
-        } elseif ($options['heartbeat'] >= 2 ** 15) {
-            throw new InvalidArgumentException('Heartbeat too high: the value is a signed int16.');
-        }
-
-        if (!is_callable($options['heartbeat_callback'] ?? null)) {
-            unset($options['heartbeat_callback']);
-        }
-
-        if (isset($options['ssl']) && is_array($options['ssl'])) {
-            $options['tls'] = $options['ssl'];
-        }
-
-        if (!isset($options['client_properties'])) {
-            $options['client_properties'] = [];
-        }
-
-        if (!is_array($options['client_properties'])) {
-            throw new InvalidArgumentException('Client properties must be an array');
-        }
-
-        $this->options = $options;
-        $this->connector = new Connector($this->options);
+        $this->configuration = $configuration;
+        $this->connector = new Connector([
+            'timeout' => $this->configuration->timeout,
+            'tls' => $this->configuration->tls,
+        ]);
 
         $this->state = ClientState::NotConnected;
         $this->channels = new Channels();
@@ -186,11 +202,11 @@ class Client implements ClientInterface
         $this->state = ClientState::Connecting;
 
         $streamScheme = 'tcp';
-        if (isset($this->options['tls']) && is_array($this->options['tls'])) {
+        if (count($this->configuration->tls) > 0) {
             $streamScheme = 'tls';
         }
 
-        $uri = sprintf('%s://%s:%s', $streamScheme, $this->options['host'], $this->options['port']);
+        $uri = sprintf('%s://%s:%s', $streamScheme, $this->configuration->host, $this->configuration->port);
 
         try {
             $this->connection = new Connection(
@@ -201,7 +217,7 @@ class Client implements ClientInterface
                 new ProtocolReader(),
                 new ProtocolWriter(),
                 $this->channels,
-                $this->options,
+                $this->configuration,
             );
             $this->connection->appendProtocolHeader();
             $this->connection->flushWriteBuffer();
@@ -213,8 +229,8 @@ class Client implements ClientInterface
                 $this->channelMax = $tune->channelMax;
             }
 
-            $this->connection->connectionTuneOk($tune->channelMax, $tune->frameMax, (int) $this->options['heartbeat']);
-            $this->connection->connectionOpen($this->options['vhost']);
+            $this->connection->connectionTuneOk($tune->channelMax, $tune->frameMax, (int) $this->configuration->heartbeat);
+            $this->connection->connectionOpen($this->configuration->vhost);
             $this->connection->startHeartbeatTimer();
 
             $this->state = ClientState::Connected;
@@ -264,12 +280,12 @@ class Client implements ClientInterface
 
         $responseBuffer = new Buffer();
         (new ProtocolWriter())->appendTable([
-            'LOGIN' => $this->options['user'],
-            'PASSWORD' => $this->options['password'],
+            'LOGIN' => $this->configuration->user,
+            'PASSWORD' => $this->configuration->password,
         ], $responseBuffer);
         $responseBuffer->discard(4);
 
-        $this->connection->connectionStartOk($responseBuffer->read($responseBuffer->getLength()), $this->options['client_properties'], 'AMQPLAIN', 'en_US');
+        $this->connection->connectionStartOk($responseBuffer->read($responseBuffer->getLength()), $this->configuration->clientProperties, 'AMQPLAIN', 'en_US');
     }
 
     /**

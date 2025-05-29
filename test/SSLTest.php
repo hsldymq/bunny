@@ -25,26 +25,41 @@ class SSLTest extends TestCase
         $this->helper = new ClientHelper();
     }
 
-    public function testConnect(): void
+    /**
+     * @return iterable<string, array<string>>
+     */
+    public static function provideKeys(): iterable
+    {
+        yield 'tls' => ['tls'];
+        yield 'ssl' => ['ssl'];
+    }
+
+    /**
+     * @dataProvider provideKeys
+     */
+    public function testConnect(string $key): void
     {
         $this->expectNotToPerformAssertions();
 
-        $options = $this->getOptions();
+        $options = $this->getOptions($key);
 
         $client = $this->helper->createClient($options);
         $client->connect();
         $client->disconnect();
     }
 
-    public function testConnectWithMissingClientCert(): void
+    /**
+     * @dataProvider provideKeys
+     */
+    public function testConnectWithMissingClientCert(string $key): void
     {
-        $options = $this->getOptions();
-        if (!isset($options['ssl']['local_cert'])) {
+        $options = $this->getOptions($key);
+        if (!isset($options[$key]['local_cert'])) {
             $this->markTestSkipped('No client certificate is used');
         }
 
         // let's try without client certificate - it should fail
-        unset($options['ssl']['local_cert'], $options['ssl']['local_pk']);
+        unset($options[$key]['local_cert'], $options[$key]['local_pk']);
 
         if (Environment::getSslTest() === 'client') {
             $this->expectException(ClientException::class);
@@ -55,9 +70,12 @@ class SSLTest extends TestCase
         $client->disconnect();
     }
 
-    public function testConnectToTcpPort(): void
+    /**
+     * @dataProvider provideKeys
+     */
+    public function testConnectToTcpPort(string $key): void
     {
-        $options = $this->getOptions();
+        $options = $this->getOptions($key);
         unset($options['port']);
 
         $this->expectException(ClientException::class);
@@ -67,10 +85,13 @@ class SSLTest extends TestCase
         $client->disconnect();
     }
 
-    public function testConnectWithWrongPeerName(): void
+    /**
+     * @dataProvider provideKeys
+     */
+    public function testConnectWithWrongPeerName(string $key): void
     {
         putenv('SSL_PEER_NAME=not-existsing-peer-name' . time());
-        $options = $this->getOptions();
+        $options = $this->getOptions($key);
 
         $this->expectException(ClientException::class);
 
@@ -82,7 +103,7 @@ class SSLTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    protected function getOptions(): array
+    protected function getOptions(string $key): array
     {
         // should we do SSL-tests
         if (!in_array(Environment::getSslTest(), ['yes', 'client'], true)) {
@@ -100,15 +121,16 @@ class SSLTest extends TestCase
 
         $peerName = Environment::getSslPeerName();
 
-        // minimal SSL-options
+        /**
+         * minimal SSL-options
+         *
+         * @var array{allow_self_signed: true, cafile: non-falsy-string, peer_name: string}|array{allow_self_signed: true, cafile: non-falsy-string, peer_name: string, local_cert: string, local_pk: string} $options
+         */
         $options = [
-            'port' => 5673,
-            'ssl'  => [
-                // for tests we are using self-signed certificates
-                'allow_self_signed' => true,
-                'cafile'            => $caFile,
-                'peer_name'         => $peerName,
-            ],
+            // for tests we are using self-signed certificates
+            'allow_self_signed' => true,
+            'cafile'            => $caFile,
+            'peer_name'         => $peerName,
         ];
 
         $certFile = Environment::getSslClientCert();
@@ -125,10 +147,13 @@ class SSLTest extends TestCase
                 $this->fail('Missing key file: "' . $keyFile . '"');
             }
 
-            $options['ssl']['local_cert'] = $certFile;
-            $options['ssl']['local_pk']   = $keyFile;
+            $options['local_cert'] = $certFile;
+            $options['local_pk']   = $keyFile;
         }
 
-        return $options;
+        return [
+            'port' => 5673,
+            $key  => $options,
+        ];
     }
 }
