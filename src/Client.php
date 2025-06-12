@@ -10,6 +10,7 @@ use Bunny\Protocol\MethodConnectionStartFrame;
 use Bunny\Protocol\ProtocolReader;
 use Bunny\Protocol\ProtocolWriter;
 use InvalidArgumentException;
+use React\EventLoop\LoopInterface;
 use React\Promise\Deferred;
 use React\Socket\Connector;
 use Throwable;
@@ -70,7 +71,7 @@ class Client implements ClientInterface
     /**
      * @param Configuration|array<string, mixed> $configuration
      */
-    public function __construct(Configuration|array $configuration = [])
+    public function __construct(Configuration|array $configuration = [], ?LoopInterface $loop = null)
     {
         if (is_array($configuration)) {
             if (!isset($configuration['host'])) {
@@ -155,7 +156,7 @@ class Client implements ClientInterface
         $this->connector = new Connector([
             'timeout' => $this->configuration->timeout,
             'tls' => $this->configuration->tls,
-        ]);
+        ], $loop);
 
         $this->state = ClientState::NotConnected;
         $this->channels = new Channels();
