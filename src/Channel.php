@@ -33,6 +33,7 @@ use React\Promise\PromiseInterface;
 use SplQueue;
 use function React\Async\async;
 use function React\Async\await;
+use function array_key_exists;
 use function array_splice;
 use function gettype;
 use function sprintf;
@@ -66,11 +67,14 @@ class Channel implements ChannelInterface, EventEmitterInterface
     /** @var list<callable(\Bunny\Message, \Bunny\Protocol\MethodBasicReturnFrame): void> */
     private array $returnCallbacks = [];
 
+    /** @var array<string,int> */
+    private array $consumeConcurrency = [];
+
+    /** @var array<string,int> */
+    private array $consumeConcurrent = [];
+
     /** @var array<string,callable(\Bunny\Message, \Bunny\Channel, \Bunny\Client): (\React\Promise\PromiseInterface<mixed>|void)> */
     private array $deliverCallbacks = [];
-
-    /** @var array<string,bool> */
-    private array $deliveryBusy = [];
 
     /** @var array<string,\SplQueue<\Bunny\Message>> */
     private array $deliveryQueue = [];
@@ -220,15 +224,23 @@ class Channel implements ChannelInterface, EventEmitterInterface
      * Creates new consumer on channel.
      *
      * @param array<string,mixed> $arguments
+     * @param positive-int        $concurrency
      */
-    public function consume(callable $callback, string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = []): MethodBasicConsumeOkFrame
+    public function consume(callable $callback, string $queue = '', string $consumerTag = '', bool $noLocal = false, bool $noAck = false, bool $exclusive = false, bool $nowait = false, array $arguments = [], int $concurrency = 1): MethodBasicConsumeOkFrame
     {
+        if ($concurrency <= 0) {
+            throw new ChannelException(
+                'basic.consume concurrency must be 1 or higher',
+            );
+        }
+
         $response = $this->consumeImpl($queue, $consumerTag, $noLocal, $noAck, $exclusive, $nowait, $arguments);
 
         if ($response instanceof MethodBasicConsumeOkFrame) {
+            $this->consumeConcurrency[$response->consumerTag] = $concurrency;
+            $this->consumeConcurrent[$response->consumerTag] = 0;
             $this->deliverCallbacks[$response->consumerTag] = $callback;
             $this->deliveryQueue[$response->consumerTag] = new SplQueue();
-            $this->deliveryBusy[$response->consumerTag] = false;
 
             return $response;
         }
@@ -337,6 +349,8 @@ class Channel implements ChannelInterface, EventEmitterInterface
     public function cancel(string $consumerTag, bool $nowait = false): bool|MethodBasicCancelOkFrame
     {
         $response = $this->cancelImpl($consumerTag, $nowait);
+        unset($this->consumeConcurrency[$consumerTag]);
+        unset($this->consumeConcurrent[$consumerTag]);
         unset($this->deliverCallbacks[$consumerTag]);
         unset($this->deliveryQueue[$consumerTag]);
 
@@ -453,9 +467,10 @@ class Channel implements ChannelInterface, EventEmitterInterface
 //                // break reference cycle, must be called after resolving promise
 //                $this->client = null;
                 // break consumers' reference cycle
+                $this->consumeConcurrency = [];
+                $this->consumeConcurrent = [];
                 $this->deliverCallbacks = [];
                 $this->deliveryQueue = [];
-                $this->deliveryBusy = [];
             } elseif ($frame instanceof MethodBasicReturnFrame) {
                 $this->returnFrame = $frame;
                 $this->state = ChannelState::AwaitingHeader;
@@ -598,25 +613,41 @@ class Channel implements ChannelInterface, EventEmitterInterface
 
     private function deliveryTick(string $consumerTag): void
     {
-        if ($this->deliveryBusy[$consumerTag] === true || empty($this->deliveryQueue[$consumerTag]) || $this->deliveryQueue[$consumerTag]->isEmpty()) {
+        if (
+            (
+                !array_key_exists($consumerTag, $this->consumeConcurrent)
+            ) ||
+            (
+                array_key_exists($consumerTag, $this->consumeConcurrent) && $this->consumeConcurrent[$consumerTag] >= $this->consumeConcurrency[$consumerTag]
+            ) ||
+            (
+                empty($this->deliveryQueue[$consumerTag])
+            ) ||
+            (
+                $this->deliveryQueue[$consumerTag]->isEmpty()
+            )
+        ) {
             return;
         }
 
-        $this->deliveryBusy[$consumerTag] = true;
+        $this->consumeConcurrent[$consumerTag]++;
         $message = $this->deliveryQueue[$consumerTag]->dequeue();
         $callback = $this->deliverCallbacks[$consumerTag];
 
         $outcome = $callback($message, $this, $this->client);
 
         if (!($outcome instanceof PromiseInterface)) {
-            $this->deliveryBusy[$consumerTag] = false;
+            $this->consumeConcurrent[$consumerTag]--;
             $this->deliveryTick($consumerTag);
 
             return;
         }
 
         $outcome->finally(function () use ($consumerTag): void {
-            $this->deliveryBusy[$consumerTag] = false;
+            if (array_key_exists($consumerTag, $this->consumeConcurrent)) {
+                $this->consumeConcurrent[$consumerTag]--;
+            }
+
             $this->deliveryTick($consumerTag);
         });
     }

@@ -20,6 +20,10 @@ parameters:
 			message: '#^Cannot call method (toArray)\(\) on Bunny\\Protocol\\ContentHeaderFrame\|null\.$#'
 			path: src/Channel.php
 		-
+			identifier: smallerOrEqual.alwaysFalse
+			path: src/Channel.php
+			count: 1
+		-
 			message: '#^Cannot call method (channelOpen|awaitConnectionTune|connectionTuneOk|connectionOpen|startHeartbeatTimer|connectionStartOk|disconnect)\(\) on Bunny\\Connection\|null\.$#'
 			path: src/Client.php
 		-
