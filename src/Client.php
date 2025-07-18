@@ -10,9 +10,9 @@ use Bunny\Protocol\MethodConnectionStartFrame;
 use Bunny\Protocol\ProtocolReader;
 use Bunny\Protocol\ProtocolWriter;
 use InvalidArgumentException;
-use React\EventLoop\LoopInterface;
 use React\Promise\Deferred;
 use React\Socket\Connector;
+use React\Socket\ConnectorInterface;
 use Throwable;
 use function React\Async\async;
 use function React\Async\await;
@@ -49,7 +49,7 @@ class Client implements ClientInterface
 {
     private readonly Configuration $configuration;
 
-    private readonly Connector $connector;
+    private readonly ConnectorInterface $connector;
 
     private ClientState $state = ClientState::NotConnected;
 
@@ -71,7 +71,7 @@ class Client implements ClientInterface
     /**
      * @param Configuration|array<string, mixed> $configuration
      */
-    public function __construct(Configuration|array $configuration = [], ?LoopInterface $loop = null)
+    public function __construct(Configuration|array $configuration = [], ?ConnectorInterface $connector = null)
     {
         if (is_array($configuration)) {
             if (!isset($configuration['host'])) {
@@ -153,10 +153,10 @@ class Client implements ClientInterface
         }
 
         $this->configuration = $configuration;
-        $this->connector = new Connector([
+        $this->connector = $connector ?? new Connector([
             'timeout' => $this->configuration->timeout,
             'tls' => $this->configuration->tls,
-        ], $loop);
+        ]);
 
         $this->state = ClientState::NotConnected;
         $this->channels = new Channels();
