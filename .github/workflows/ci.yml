@@ -63,7 +63,7 @@ jobs:
       - name: RabbitMQ TLS Certificates
         if: matrix.ssl_test != 'no'
         run: |
-          cd test/ssl
+          cd test/tls
           make all
           ls -lasth
           sudo chown 999:999 ./{ca.pem,server.pem,server.key}
@@ -82,8 +82,8 @@ jobs:
           version: '${{ matrix.rabbitmq }}-management'
           ports: '5673:5673 5672:5672 15672:15672'
           container-name: 'rabbitmq'
-          certificates: ${{ github.workspace }}/test/ssl
-          config: ${{ github.workspace }}/test/ssl/rabbitmq.ssl.verify_none.conf
+          certificates: ${{ github.workspace }}/test/tls
+          config: ${{ github.workspace }}/test/tls/rabbitmq.tls.verify_none.conf
       - name: Start RabbitMQ
         if: matrix.ssl_test == 'client'
         uses: namoshek/rabbitmq-github-action@v1
@@ -91,8 +91,8 @@ jobs:
           version: '${{ matrix.rabbitmq }}-management'
           ports: '5673:5673 5672:5672 15672:15672'
           container-name: 'rabbitmq'
-          certificates: ${{ github.workspace }}/test/ssl
-          config: ${{ github.workspace }}/test/ssl/rabbitmq.ssl.verify_peer.conf
+          certificates: ${{ github.workspace }}/test/tls
+          config: ${{ github.workspace }}/test/tls/rabbitmq.tls.verify_peer.conf
       - uses: ifaxity/wait-on-action@v1
         with:
           resource: http://localhost:15672/
@@ -109,7 +109,7 @@ jobs:
         run: ./vendor/bin/phpunit
         env:
           SSL_TEST: "yes"
-          SSL_CA: "ssl/ca.pem"
+          SSL_CA: "tls/ca.pem"
           SSL_PEER_NAME: "server.rmq"
           TEST_RABBITMQ_CONNECTION_URI: "amqp://guest:guest@localhost:5672/"
       - name: Run UnitTests
@@ -117,10 +117,10 @@ jobs:
         run: ./vendor/bin/phpunit
         env:
           SSL_TEST: "client"
-          SSL_CA: "ssl/ca.pem"
+          SSL_CA: "tls/ca.pem"
           SSL_PEER_NAME: "server.rmq"
-          SSL_CLIENT_CERT: "ssl/client.pem"
-          SSL_CLIENT_KEY: "ssl/client.key"
+          SSL_CLIENT_CERT: "tls/client.pem"
+          SSL_CLIENT_KEY: "tls/client.key"
           TEST_RABBITMQ_CONNECTION_URI: "amqp://guest:guest@localhost:5672/"
       - name: Docker Logs
         if: ${{ failure() }}

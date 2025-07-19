@@ -28,7 +28,7 @@ install_config() {
   fi
 }
 
-TEST_DATA_ROOT=/opt/bunny/test/ssl
+TEST_DATA_ROOT=/opt/bunny/test/tls
 CONFIG_NAME=${CONFIG_NAME:-}
 
 install_certs
