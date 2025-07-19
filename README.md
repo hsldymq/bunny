@@ -82,9 +82,9 @@ $bunny = new Client($connection);
 $bunny->connect();
 ```
 
-### Connecting with SSL/TLS
+### Connecting with TLS(/SSL)
 
-Options for SSL-connections should be specified as array `ssl`:  
+Options for TLS-connections should be specified as array `tls`:  
 
 ```php
 $connection = [
@@ -92,7 +92,7 @@ $connection = [
     'vhost'     => 'VHOST',    // The default vhost is /
     'user'      => 'USERNAME', // The default user is guest
     'password'  => 'PASSWORD', // The default password is guest
-    'ssl'       => [
+    'tls'       => [
         'cafile'      => 'ca.pem',
         'local_cert'  => 'client.cert',
         'local_pk'    => 'client.key',
@@ -105,9 +105,9 @@ $bunny->connect();
 
 For options description - please see [SSL context options](https://www.php.net/manual/en/context.ssl.php).
 
-Note: invalid SSL configuration will cause connection failure.
+Note: invalid TLS configuration will cause connection failure.
 
-See also [common configuration variants](examples/ssl/).
+See also [common configuration variants](examples/tls/).
 
 ### Providing client properties
 
@@ -224,10 +224,10 @@ There is [amqp interop](https://github.com/queue-interop/amqp-interop) compatibl
 
 ## Testing
 
-Create client/server SSL certificates by running:
+Create client/server TLS certificates by running:
 
 ```
-$ cd test/ssl && make all && cd -
+$ cd test/tls && make all && cd -
 ```
 
 You need access to a RabbitMQ instance in order to run the test suite. The easiest way is to use the provided Docker Compose setup to create an isolated environment, including a RabbitMQ container, to run the test suite in.
@@ -241,7 +241,7 @@ You need access to a RabbitMQ instance in order to run the test suite. The easie
   $ docker-compose up -d
   ```
 
-  To test against different SSL configurations (as in CI builds), you can set environment variable `CONFIG_NAME=rabbitmq.ssl.verify_none` before running `docker-compose up`.
+  To test against different TLS configurations (as in CI builds), you can set environment variable `CONFIG_NAME=rabbitmq.tls.verify_none` before running `docker-compose up`.
   
 - Optionally use `docker ps` to display the running containers.  
 

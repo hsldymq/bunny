@@ -42,8 +42,8 @@ stan: ## Run static analysis (PHPStan)
 	$(DOCKER_RUN) vendor/bin/phpstan analyse src test --ansi -c ./phpstan.neon
 
 unit-testing: ## Run tests
-ifeq ("$(wildcard test/ssl/ca.pem)","")
-	make -C test/ssl all
+ifeq ("$(wildcard test/tls/ca.pem)","")
+	make -C test/tls all
 endif
 	docker compose up -d
 	sleep 6 # Find a good wait-for solution
