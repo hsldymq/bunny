@@ -11,13 +11,10 @@ use Bunny\Protocol\ProtocolReader;
 use Bunny\Protocol\ProtocolWriter;
 use InvalidArgumentException;
 use React\Promise\Deferred;
-use React\Socket\Connector;
-use React\Socket\ConnectorInterface;
 use Throwable;
 use function React\Async\async;
 use function React\Async\await;
 use function React\Promise\all;
-use function count;
 use function is_array;
 use function is_callable;
 use function sprintf;
@@ -49,8 +46,6 @@ class Client implements ClientInterface
 {
     private readonly Configuration $configuration;
 
-    private readonly ConnectorInterface $connector;
-
     private ClientState $state = ClientState::NotConnected;
 
     private ?Connection $connection = null;
@@ -71,7 +66,7 @@ class Client implements ClientInterface
     /**
      * @param Configuration|array<string, mixed> $configuration
      */
-    public function __construct(Configuration|array $configuration = [], ?ConnectorInterface $connector = null)
+    public function __construct(Configuration|array $configuration = [])
     {
         if (is_array($configuration)) {
             if (!isset($configuration['host'])) {
@@ -153,11 +148,6 @@ class Client implements ClientInterface
         }
 
         $this->configuration = $configuration;
-        $this->connector = $connector ?? new Connector([
-            'timeout' => $this->configuration->timeout,
-            'tls' => $this->configuration->tls,
-        ]);
-
         $this->state = ClientState::NotConnected;
         $this->channels = new Channels();
     }
@@ -202,17 +192,10 @@ class Client implements ClientInterface
 
         $this->state = ClientState::Connecting;
 
-        $streamScheme = 'tcp';
-        if (count($this->configuration->tls) > 0) {
-            $streamScheme = 'tls';
-        }
-
-        $uri = sprintf('%s://%s:%s', $streamScheme, $this->configuration->host, $this->configuration->port);
-
         try {
             $this->connection = new Connection(
                 $this,
-                await($this->connector->connect($uri)),
+                await($this->configuration->connector->connect($this->configuration->uri)),
                 new Buffer(),
                 new Buffer(),
                 new ProtocolReader(),
@@ -236,7 +219,7 @@ class Client implements ClientInterface
 
             $this->state = ClientState::Connected;
         } catch (Throwable $thrown) {
-            $exception = new ClientException('Could not connect to ' . $uri . ': ' . $thrown->getMessage(), $thrown->getCode(), $thrown);
+            $exception = new ClientException('Could not connect to ' . $this->configuration->uri . ': ' . $thrown->getMessage(), $thrown->getCode(), $thrown);
 
             $this->resolveConnectQueue($exception);
 
