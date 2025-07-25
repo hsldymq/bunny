@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Bunny;
 
+use function getmypid;
 use function microtime;
+use function printf;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -36,7 +38,8 @@ for ($i = 0; $i < $max; $i++) {
     $ch->publish($body, [], 'bench_exchange');
 }
 
-echo microtime(true) - $time, "\n";
+$runTime = microtime(true) - $time;
+printf("Produce: Pid: %s, Time: %.6f, Msg/sec: %.0f\n", getmypid(), $runTime, (1 / $runTime) * $max);
 
 $ch->publish('quit', [], 'bench_exchange');
 
