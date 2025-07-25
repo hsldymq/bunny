@@ -17,16 +17,17 @@ $ch->queueDeclare('bench_queue');
 $ch->exchangeDeclare('bench_exchange');
 $ch->queueBind('bench_exchange', 'bench_queue');
 
-$t = null;
+$time = null;
 $count = 0;
 
-$ch->consume(static function (Message $msg, Channel $ch, Client $c) use (&$t, &$count): void {
-    if ($t === null) {
-        $t = microtime(true);
+$ch->consume(static function (Message $msg, Channel $ch, Client $c) use (&$time, &$count): void {
+    if ($time === null) {
+        $time = microtime(true);
     }
 
     if ($msg->content === 'quit') {
-        printf("Pid: %s, Count: %s, Time: %.4f\n", getmypid(), $count, microtime(true) - $t);
+        $runTime = microtime(true) - $time;
+        printf("Consume: Pid: %s, Count: %s, Time: %.6f, Msg/sec: %.0f\n", getmypid(), $count, $runTime, (1 / $runTime) * $count);
         $c->disconnect();
     } else {
         ++$count;
