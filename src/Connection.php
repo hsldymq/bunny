@@ -2167,14 +2167,14 @@ final class Connection
 
     public function startHeartbeatTimer(): void
     {
-        $this->heartbeatTimer = Loop::addTimer($this->configuration->heartbeat, [$this, 'onHeartbeat']);
-        $this->connection->on('drain', [$this, 'onHeartbeat']);
+        $this->heartbeatTimer = Loop::addTimer($this->configuration->heartbeat, $this->onHeartbeat(...));
+        $this->connection->on('drain', $this->onHeartbeat(...));
     }
 
     /**
      * Callback when heartbeat timer timed out.
      */
-    public function onHeartbeat(): void
+    private function onHeartbeat(): void
     {
         $now = microtime(true);
         $nextHeartbeat = ($this->lastWrite ?: $now) + $this->configuration->heartbeat;
@@ -2183,12 +2183,12 @@ final class Connection
             $this->writer->appendFrame(new HeartbeatFrame(), $this->writeBuffer);
             $this->flushWriteBuffer();
 
-            $this->heartbeatTimer = Loop::addTimer($this->configuration->heartbeat, [$this, 'onHeartbeat']);
+            $this->heartbeatTimer = Loop::addTimer($this->configuration->heartbeat, $this->onHeartbeat(...));
             if (is_callable($this->configuration->heartbeatCallback)) {
                 ($this->configuration->heartbeatCallback)($this);
             }
         } else {
-            $this->heartbeatTimer = Loop::addTimer($nextHeartbeat - $now, [$this, 'onHeartbeat']);
+            $this->heartbeatTimer = Loop::addTimer($nextHeartbeat - $now, $this->onHeartbeat(...));
         }
     }
 }
