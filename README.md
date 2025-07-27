@@ -1,11 +1,11 @@
 # BunnyPHP
 
-[![Build Status](https://travis-ci.org/jakubkulhan/bunny.svg?branch=master)](https://travis-ci.org/jakubkulhan/bunny)
+[![Continuous Integration](https://github.com/jakubkulhan/bunny/actions/workflows/ci.yml/badge.svg)](https://github.com/jakubkulhan/bunny/actions/workflows/ci.yml)
 [![Downloads this Month](https://img.shields.io/packagist/dm/bunny/bunny.svg)](https://packagist.org/packages/bunny/bunny)
 [![Latest stable](https://img.shields.io/packagist/v/bunny/bunny.svg)](https://packagist.org/packages/bunny/bunny)
 
 
-> Performant pure-PHP AMQP (RabbitMQ) sync/async (ReactPHP) library
+> Performant pure-PHP AMQP (RabbitMQ) non-blocking ReactPHP library
 
 ## Requirements
 
@@ -16,7 +16,7 @@ BunnyPHP requires PHP 8.1 and newer.
 Add as [Composer](https://getcomposer.org/) dependency:
 
 ```sh
-$ composer require bunny/bunny:@dev
+$ composer require bunny/bunny:@^0.6dev
 ```
 
 ## Comparison
@@ -37,11 +37,10 @@ Why should you want to choose BunnyPHP instead?
   as stable yet. But it is already being used in production.
 
 * You have **both classic CLI/FPM and [ReactPHP](http://reactphp.org/)** applications and need to connect to RabbitMQ.
-  BunnyPHP comes with both **synchronous and asynchronous** clients with same PHP-idiomatic interface. Async client uses
-  [react/promise](https://github.com/reactphp/promise).
+  BunnyPHP comes with an **asynchronous** client with a **synchronous** API using [`Fibers`](https://reactphp.org/async/).
 
 Apart from that BunnyPHP is more performant than main competing library, php-amqplib. See [`benchmark/` directory](https://github.com/jakubkulhan/bunny/tree/master/benchmark)
-and [php-amqplib's `benchmark/`](https://github.com/videlalvaro/php-amqplib/tree/master/benchmark). For `ext-amp` https://gist.github.com/WyriHaximus/65fd98e099820aded1b79e9111e02916 is used.
+and [php-amqplib's `benchmark/`](https://github.com/videlalvaro/php-amqplib/tree/master/benchmark). (For `ext-amp` https://gist.github.com/WyriHaximus/65fd98e099820aded1b79e9111e02916 is used.)
 
 Benchmarks were run as:
 
@@ -79,35 +78,41 @@ $ php benchmark/producer.php N & php benchmark/consumer.php
 When instantiating the BunnyPHP `Client` accepts an array with connection options:
 
 ```php
-$connection = [
-    'host'      => 'HOSTNAME',
-    'vhost'     => 'VHOST',    // The default vhost is /
-    'user'      => 'USERNAME', // The default user is guest
-    'password'  => 'PASSWORD', // The default password is guest
-];
+use Bunny\Client;
+use Bunny\Configuration;
 
-$bunny = new Client($connection);
+$configuration = new Configuration(
+    host:     'HOSTNAME',
+    vhost:    'VHOST',    // The default vhost is /
+    user:     'USERNAME', // The default user is guest
+    password: 'PASSWORD', // The default password is guest
+);
+
+$bunny = new Client($configuration);
 $bunny->connect();
 ```
 
-### Connecting with TLS(/SSL)
+### Connecting securely using TLS(/SSL)
 
 Options for TLS-connections should be specified as array `tls`:  
 
 ```php
-$connection = [
-    'host'      => 'HOSTNAME',
-    'vhost'     => 'VHOST',    // The default vhost is /
-    'user'      => 'USERNAME', // The default user is guest
-    'password'  => 'PASSWORD', // The default password is guest
-    'tls'       => [
+use Bunny\Client;
+use Bunny\Configuration;
+
+$configuration = new Configuration(
+    host:     'HOSTNAME',
+    vhost:    'VHOST',    // The default vhost is /
+    user:     'USERNAME', // The default user is guest
+    password: 'PASSWORD', // The default password is guest
+    tls:      [
         'cafile'      => 'ca.pem',
         'local_cert'  => 'client.cert',
         'local_pk'    => 'client.key',
     ],
-];
+);
 
-$bunny = new Client($connection);
+$bunny = new Client($configuration);
 $bunny->connect();
 ```
 
@@ -126,17 +131,40 @@ For example, a connection name may be provided by setting the
 [`connection_name` property](https://www.rabbitmq.com/connections.html#client-provided-names):
 
 ```php
-$connection = [
-    'host'              => 'HOSTNAME',
-    'vhost'             => 'VHOST',    // The default vhost is /
-    'user'              => 'USERNAME', // The default user is guest
-    'password'          => 'PASSWORD', // The default password is guest
-    'client_properties' => [
+use Bunny\Client;
+use Bunny\Configuration;
+
+$configuration = new Configuration(
+    host:             'HOSTNAME',
+    vhost:            'VHOST',    // The default vhost is /
+    user:             'USERNAME', // The default user is guest
+    password:         'PASSWORD', // The default password is guest
+    clientProperties: [
         'connection_name' => 'My connection',
     ],
-];
+);
 
-$bunny = new Client($connection);
+$bunny = new Client($configuration);
+$bunny->connect();
+```
+
+Obviously this can be dynamic, for example, on Kubernetes you can include the pod, the namespace, and any other environment variable in it:
+
+```php
+use Bunny\Client;
+use Bunny\Configuration;
+
+$configuration = new Configuration(
+    host:             'HOSTNAME',
+    vhost:            'VHOST',    // The default vhost is /
+    user:             'USERNAME', // The default user is guest
+    password:         'PASSWORD', // The default password is guest
+    clientProperties: [
+        'connection_name' => 'Pod: ' . getenv('POD_NAME') . '; Release: ' . getenv('RELEASE_TAG') . '; Namespace: ' . getenv('POD_NAMESPACE'),
+    ],
+);
+
+$bunny = new Client($configuration);
 $bunny->connect();
 ```
 
@@ -165,7 +193,16 @@ $channel->publish(
     $message,    // The message you're publishing as a string
     [],          // Any headers you want to add to the message
     '',          // Exchange name
-    'queue_name' // Routing key, in this example the queue's name
+    'queue_name', // Routing key, in this example the queue's name
+);
+```
+
+Alternatively:
+
+```php
+$channel->publish(
+    body:       $message,     // The message you're publishing as a string
+    routingKey: 'queue_name', // Routing key, in this example the queue's name
 );
 ```
 
@@ -175,7 +212,7 @@ Subscribing to a queue can be done in two ways. The first way will run indefinit
 
 ```php
 $channel->run(
-    function (Message $message, Channel $channel, Client $bunny) {
+    static function (Message $message, Channel $channel, Client $bunny) {
         $success = handleMessage($message); // Handle your message here
 
         if ($success) {
@@ -185,7 +222,7 @@ $channel->run(
 
         $channel->nack($message); // Mark message fail, message will be redelivered
     },
-    'queue_name'
+    'queue_name',
 );
 ```
 
@@ -193,10 +230,10 @@ The other way lets you run the client for a specific amount of time consuming th
 
 ```php
 $channel->consume(
-    function (Message $message, Channel $channel, Client $client){
+    static function (Message $message, Channel $channel, Client $client) {
         $channel->ack($message); // Acknowledge message
     },
-    'queue_name'
+    'queue_name',
 );
 $bunny->run(12); // Client runs for 12 seconds and then stops
 ```
@@ -218,7 +255,7 @@ A way to control how many messages are prefetched by BunnyPHP when consuming a q
 ```php
 $channel->qos(
     0, // Prefetch size
-    5  // Prefetch count
+    5,  // Prefetch count
 );
 ```
 
@@ -232,9 +269,19 @@ There is [amqp interop](https://github.com/queue-interop/amqp-interop) compatibl
 
 ## Testing
 
+To fully test this package, TLS certificates are required and a local RabbitMQ. On top of that a Code Style fixer and Static Analysis are used in this project. To make it as simple as possible for anyone working on this project a `Makefile` is in place to take care of all of that.
+
+```shell
+$ make
+```
+
+<details>
+
+<summary>Testing details</summary>
+
 Create client/server TLS certificates by running:
 
-```
+```shell
 $ cd test/tls && make all && cd -
 ```
 
@@ -245,7 +292,7 @@ You need access to a RabbitMQ instance in order to run the test suite. The easie
 - Use Docker Compose to create a network with a RabbitMQ container and a PHP container to run the tests in. The project
   directory will be mounted into the PHP container.
   
-  ```
+  ```shell
   $ docker-compose up -d
   ```
 
@@ -253,7 +300,7 @@ You need access to a RabbitMQ instance in order to run the test suite. The easie
   
 - Optionally use `docker ps` to display the running containers.  
 
-  ```
+  ```shell
   $ docker ps --filter name=bunny
   [...] bunny_rabbit_node_1_1
   [...] bunny_bunny_1
@@ -261,15 +308,17 @@ You need access to a RabbitMQ instance in order to run the test suite. The easie
 
 - Enter the PHP container.
 
-  ```
+  ```shell
   $ docker exec -it bunny_bunny_1 bash
   ```
   
 - Within the container, run:
 
-  ```
+  ```shell
   $ vendor/bin/phpunit
   ```
+
+</details>
 
 ## Contributing
 
