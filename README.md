@@ -41,7 +41,7 @@ Why should you want to choose BunnyPHP instead?
   [react/promise](https://github.com/reactphp/promise).
 
 Apart from that BunnyPHP is more performant than main competing library, php-amqplib. See [`benchmark/` directory](https://github.com/jakubkulhan/bunny/tree/master/benchmark)
-and [php-amqplib's `benchmark/`](https://github.com/videlalvaro/php-amqplib/tree/master/benchmark).
+and [php-amqplib's `benchmark/`](https://github.com/videlalvaro/php-amqplib/tree/master/benchmark). For `ext-amp` https://gist.github.com/WyriHaximus/65fd98e099820aded1b79e9111e02916 is used.
 
 Benchmarks were run as:
 
@@ -51,18 +51,26 @@ $ php benchmark/producer.php N & php benchmark/consumer.php
 
 | Library     | N (# messages) | Produce sec | Produce msg/sec | Consume sec | Consume msg/sec |
 |-------------|---------------:|------------:|----------------:|------------:|----------------:|
-| php-amqplib | 100            | 0.0131      | 7633            | 0.0446      | 2242            |
-| bunnyphp    | 100            | 0.0128      | 7812            | 0.0488      | 2049            |
-| bunnyphp +/-|                |             | +2.3%           |             | -8.6%           |
-| php-amqplib | 1000           | 0.1218      | 8210            | 0.4801      | 2082            |
-| bunnyphp    | 1000           | 0.1042      | 9596            | 0.2919      | 3425            |
-| bunnyphp +/-|                |             | +17%            |             | +64%            |
-| php-amqplib | 10000          | 1.1075      | 9029            | 5.1824      | 1929            |
-| bunnyphp    | 10000          | 0.9078      | 11015           | 2.9058      | 3441            |
-| bunnyphp +/-|                |             | +22%            |             | +78%            |
-| php-amqplib | 100000         | 20.7005     | 4830            | 69.0360     | 1448            |
-| bunnyphp    | 100000         | 9.7891      | 10215           | 35.7305     | 2789            |
-| bunnyphp +/-|                |             | +111%           |             | +92%            |
+| php-amqplib | 100            | 0.000671    | 148998          | 0.001714    | 58343           |
+| ext-amqp    | 100            | 0.000302    | 331042          | 0.008915    | 11217           |
+| bunnyphp    | 100            | 0.000194    | 515271          | 0.000939    | 106508          |
+| bunnyphp +/-|                |             | +345.8%/+155.6% |             | +182.5%/+949.5% |
+| php-amqplib | 1000           | 0.004827    | 207167          | 0.015166    | 65937           |
+| ext-amqp    | 1000           | 0.002399    | 416846          | 0.078373    | 12760           |
+| bunnyphp    | 1000           | 0.001597    | 626202          | 0.011139    | 89773           |
+| bunnyphp +/-|                |             | +302.2%/+150.2% |             | +136.1%/+703.5% |
+| php-amqplib | 10000          | 0.060204    | 166102          | 0.147772    | 67672           |
+| ext-amqp    | 10000          | 0.022735    | 439853          | 0.754800    | 13249           |
+| bunnyphp    | 10000          | 0.016441    | 608232          | 0.106685    | 93734           |
+| bunnyphp +/-|                |             | +366.1%/+138.2% |             | +138.5%/+707.4% |
+| php-amqplib | 100000         | 1.158033    | 90276           | 1.477762    | 67670           |
+| ext-amqp    | 100000         | 0.952319    | 105007          | 7.494665    | 13343           |
+| bunnyphp    | 100000         | 0.812430    | 123088          | 1.073454    | 93157           |
+| bunnyphp +/-|                |             | +136.3%/+117.2% |             | +137.6%/+698.1% |
+| php-amqplib | 1000000        | 18.64132    | 53644           | 18.992902   | 52651           |
+| ext-amqp    | 1000000        | 12.86827    | 77710           | 89.432139   | 11182           |
+| bunnyphp    | 1000000        | 11.63421    | 85953           | 11.947426   | 83700           |
+| bunnyphp +/-|                |             | +160.2%/+110.6% |             | +158.9%/+748.5% |
 
 ## Tutorial
 
