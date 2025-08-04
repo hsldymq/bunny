@@ -10,7 +10,7 @@ use Bunny\Async\Client;
 use Bunny\Exception\ClientException;
 use Bunny\Test\Library\AsynchronousClientHelper;
 use PHPUnit\Framework\TestCase;
-use React\EventLoop\Loop;
+use React\EventLoop\Factory;
 
 class AsyncAuthenticationTest extends TestCase
 {
@@ -28,7 +28,7 @@ class AsyncAuthenticationTest extends TestCase
 
     public function testAMQPLAINAuthentication()
     {
-        $loop = Loop::get();
+        $loop = Factory::create();
         $client = $this->helper->createClient($loop);
         
         $connected = false;
@@ -49,7 +49,7 @@ class AsyncAuthenticationTest extends TestCase
             $this->markTestSkipped('Skipped because env var AUTH_TEST not set to "plain"');
         }
 
-        $loop = Loop::get();
+        $loop = Factory::create();
         $client = $this->helper->createClient($loop);
         
         $connected = false;
@@ -65,7 +65,7 @@ class AsyncAuthenticationTest extends TestCase
 
     public function testInvalidCredentials()
     {
-        $loop = Loop::get();
+        $loop = Factory::create();
         
         $options = $this->helper->getDefaultOptions();
         $options['user'] = 'invalid_user';
@@ -92,7 +92,7 @@ class AsyncAuthenticationTest extends TestCase
     public function testAuthenticationMechanismSelection()
     {
         // This test verifies that the asynchronous client can correctly select the available authentication mechanism.
-        $loop = Loop::get();
+        $loop = Factory::create();
         $client = $this->helper->createClient($loop);
         
         $connected = false;
