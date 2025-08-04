@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ${{ fromJson(needs.supported-versions-matrix.outputs.version) }}
+        php: ["8.1", "8.2"]
         composer: [lowest, locked, highest]
         rabbitmq: ["3", "3.9"]
         ssl_test: ["no", "yes", "client"]
