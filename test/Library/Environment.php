@@ -26,6 +26,11 @@ final class Environment
         return trim(self::getenv('SSL_PEER_NAME'));
     }
 
+    public static function getAuthTest(): string
+    {
+        return trim(self::getenv('AUTH_TEST'));
+    }
+
     /**
      * Can have the following values:
      *

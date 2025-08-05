@@ -9,6 +9,7 @@ namespace Bunny;
 use Bunny\Async\Client;
 use Bunny\Exception\ClientException;
 use Bunny\Test\Library\AsynchronousClientHelper;
+use Bunny\Test\Library\Environment;
 use PHPUnit\Framework\TestCase;
 use React\EventLoop\Factory;
 
@@ -45,7 +46,7 @@ class AsyncAuthenticationTest extends TestCase
     public function testPLAINAuthentication()
     {
         // Skip the test if the environment variable AUTH_TEST is not set to "plain"
-        if (getenv('AUTH_TEST') !== 'plain') {
+        if (Environment::getAuthTest() !== 'plain') {
             $this->markTestSkipped('Skipped because env var AUTH_TEST not set to "plain"');
         }
 
