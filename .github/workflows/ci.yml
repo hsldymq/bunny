@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ["8.1", "8.2"]
+        php: ["8.2"]
         composer: [lowest, locked, highest]
         rabbitmq: ["3", "3.9"]
         ssl_test: ["no", "yes", "client"]
@@ -102,7 +102,7 @@ jobs:
           ports: '5672:5672 15672:15672'
           container-name: 'rabbitmq'
           config: ${{ github.workspace }}/test/auth/rabbitmq.amqplain.conf
-      - name: Start RabbitMQ (SSL)
+      - name: Start RabbitMQ
         if: matrix.ssl_test == 'yes'
         uses: namoshek/rabbitmq-github-action@v1
         with:
@@ -111,7 +111,7 @@ jobs:
           container-name: 'rabbitmq'
           certificates: ${{ github.workspace }}/test/ssl
           config: ${{ github.workspace }}/test/ssl/rabbitmq.ssl.verify_none.conf
-      - name: Start RabbitMQ (SSL + Client Auth)
+      - name: Start RabbitMQ
         if: matrix.ssl_test == 'client'
         uses: namoshek/rabbitmq-github-action@v1
         with:
