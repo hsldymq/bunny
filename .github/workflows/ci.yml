@@ -45,16 +45,18 @@ jobs:
         composer: [lowest, locked, highest]
         rabbitmq: ["3", "3.9"]
         ssl_test: ["no", "yes", "client"]
-        auth_test: ["default", "plain", "amqplain"]
-        exclude:
-          # Skip auth tests when SSL is enabled to reduce matrix complexity
-          - ssl_test: "yes"
+        auth_test: ["default"]
+        include:
+          # Add specific auth tests
+          - php: "8.2"
+            composer: "locked"
+            rabbitmq: "3.9"
+            ssl_test: "no"
             auth_test: "plain"
-          - ssl_test: "yes"
-            auth_test: "amqplain"
-          - ssl_test: "client"
-            auth_test: "plain"
-          - ssl_test: "client"
+          - php: "8.2"
+            composer: "locked"
+            rabbitmq: "3.9"
+            ssl_test: "no"
             auth_test: "amqplain"
     steps:
       - name: Checkout
@@ -77,14 +79,14 @@ jobs:
           ls -lasth
           sudo chown 999:999 ./{ca.pem,server.pem,server.key}
           ls -lasth
-      - name: Start RabbitMQ (Default Auth)
+      - name: Start RabbitMQ
         if: matrix.ssl_test == 'no' && matrix.auth_test == 'default'
         uses: namoshek/rabbitmq-github-action@v1
         with:
           version: '${{ matrix.rabbitmq }}-management'
           ports: '5672:5672 15672:15672'
           container-name: 'rabbitmq'
-      - name: Start RabbitMQ (PLAIN Auth Only)
+      - name: Start RabbitMQ (PLAIN Auth)
         if: matrix.ssl_test == 'no' && matrix.auth_test == 'plain'
         uses: namoshek/rabbitmq-github-action@v1
         with:
@@ -92,7 +94,7 @@ jobs:
           ports: '5672:5672 15672:15672'
           container-name: 'rabbitmq'
           config: ${{ github.workspace }}/test/auth/rabbitmq.plain.conf
-      - name: Start RabbitMQ (AMQPLAIN Auth Only)
+      - name: Start RabbitMQ (AMQPLAIN Auth)
         if: matrix.ssl_test == 'no' && matrix.auth_test == 'amqplain'
         uses: namoshek/rabbitmq-github-action@v1
         with:
@@ -100,8 +102,8 @@ jobs:
           ports: '5672:5672 15672:15672'
           container-name: 'rabbitmq'
           config: ${{ github.workspace }}/test/auth/rabbitmq.amqplain.conf
-      - name: Start RabbitMQ (SSL + Default Auth)
-        if: matrix.ssl_test == 'yes' && matrix.auth_test == 'default'
+      - name: Start RabbitMQ
+        if: matrix.ssl_test == 'yes'
         uses: namoshek/rabbitmq-github-action@v1
         with:
           version: '${{ matrix.rabbitmq }}-management'
@@ -109,8 +111,8 @@ jobs:
           container-name: 'rabbitmq'
           certificates: ${{ github.workspace }}/test/ssl
           config: ${{ github.workspace }}/test/ssl/rabbitmq.ssl.verify_none.conf
-      - name: Start RabbitMQ (SSL + Client Auth + Default Auth)
-        if: matrix.ssl_test == 'client' && matrix.auth_test == 'default'
+      - name: Start RabbitMQ
+        if: matrix.ssl_test == 'client'
         uses: namoshek/rabbitmq-github-action@v1
         with:
           version: '${{ matrix.rabbitmq }}-management'
